@@ -12,15 +12,11 @@ from simulation.f import F
 
 class Solver:
 
-    def __init__(self, grid, F0, FN, mi, la):
-        self.mi = mi
-        self.la = la
+    def __init__(self, grid, F0, FN):
 
         self.grid = grid
-        # self.time_step = time_step
-        # self.currentTime = 0
 
-        self.M = Matrices(grid, mi, la)
+        self.M = Matrices(grid)
         self.F = F(grid, F0, FN)
 
         self.u = np.zeros([self.grid.indNumber(), 2])

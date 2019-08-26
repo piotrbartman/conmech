@@ -19,7 +19,7 @@ class SimulationRunner:
         grid = GridFactory.construct(setup.cells_number[0],
                                      setup.cells_number[1],
                                      setup.gridHeight)
-        solver = Solver(grid, setup.F0, setup.FN, setup.mi, setup.la)
+        solver = Solver(grid, setup.F0, setup.FN)
 
         u_vector = np.zeros(2 * grid.indNumber())
 
