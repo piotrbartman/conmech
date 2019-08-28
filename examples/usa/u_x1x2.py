@@ -10,9 +10,9 @@ from simulation.simulation_runner import SimulationRunner
 
 class Setup:
     gridHeight = 1
-    cells_number = (4, 10)  # number of triangles per aside
+    cells_number = (10, 10)  # number of triangles per aside
 
-    alpha = 10000
+    alpha = 1000
 
     # f = lambda x1, x2, x3: x1+x2+x3
     # g = lambda x1, x2: 1
@@ -21,16 +21,22 @@ class Setup:
 
     @staticmethod
     def f(x1, x2):
-        return 0.2
+        result = 0
+        return result
 
     @staticmethod
     def g(x1, x2):
-        return 0.8
+        if x1 == 1:
+            result = x2
+        if x2 == 1:
+            result = x1
+        return result
 
     @staticmethod
     def regular_dphi(r, b, rho):
-        x = r - b
-        result = x / np.sqrt(x**2 + rho**2)
+        # x = r - b
+        # result = x / np.sqrt(x**2 + rho**2)
+        result = 0
         return result
 
 

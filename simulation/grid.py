@@ -22,8 +22,9 @@ class Grid:
     CROSS = 9
 
     def __init__(self):
-        self.Points = np.zeros([0, 3])
-        self.Edges = np.zeros([0, 3], dtype=np.int)
+        self.Points = np.zeros((0, 3))
+        self.Edges = np.zeros((0, 3), dtype=np.int)  # TODO optimize (remove and use only edges)
+        self.edges = np.zeros((0, 4, 2), dtype=np.int)
         # TODO: bad practice
         #  i, j, type: (always i<j on plane)
         #  0 - no edge
@@ -63,9 +64,9 @@ class Grid:
     # TODO: order of args still matters
     def get_edge(self, i, j):
         result = (-1, -1, -1)
-
-        for edge in self.Edges:
-            if edge[0] == i and edge[1] == j:
-                result = edge
+        for k in range(len(self.edges[i])):
+            if self.edges[i, k, 0] == j:
+                result = (i, j, self.edges[i, k, 1])
+                break
 
         return result

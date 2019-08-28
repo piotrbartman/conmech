@@ -19,7 +19,7 @@ class GridFactory:
             else:
                 i += 1
         grid.Points = np.append([[x, y, t]], grid.Points, axis=0)
-        for i in range(0, len(grid.Edges)):
+        for i in range(len(grid.Edges)):
             grid.Edges[i][0] += 1
             grid.Edges[i][1] += 1
 
@@ -117,7 +117,7 @@ class GridFactory:
 
         GridFactory.stopBorder(grid)
 
-        for i in range(0, sizeL):
+        for i in range(sizeL):
             for j in range(1, sizeH):
                 x1 = float(i) * grid.longTriangleSide
                 x2 = float(i + 1) * float(grid.longTriangleSide)
@@ -129,7 +129,7 @@ class GridFactory:
                 GridFactory.addEdge(grid, a, b, 1)
 
         for i in range(1, sizeL):
-            for j in range(0, sizeH):
+            for j in range(sizeH):
                 x = float(i) * grid.longTriangleSide
                 y1 = float(j) * grid.longTriangleSide
                 y2 = float(j + 1) * grid.longTriangleSide
@@ -139,8 +139,8 @@ class GridFactory:
                 b = grid.getPoint(x, y2)
                 GridFactory.addEdge(grid, a, b, 2)
 
-        for i in range(0, sizeL):
-            for j in range(0, sizeH):
+        for i in range(sizeL):
+            for j in range(sizeH):
                 x = (float(i) + 0.5) * grid.longTriangleSide
                 y = (float(j) + 0.5) * grid.longTriangleSide
                 GridFactory.addPoint(grid, x, y, 9)
@@ -154,4 +154,14 @@ class GridFactory:
                 b = grid.getPoint((float(i)) * grid.longTriangleSide, (float(j)) * grid.longTriangleSide)
                 GridFactory.addEdge(grid, a, b, 3)
 
+        max_egdes = 4
+        grid.edges = np.zeros((np.max(grid.Edges) + 1, max_egdes, 2), dtype=np.int)
+        grid.edges -= 1
+        for i in range(len(grid.Edges)):
+            edges = grid.edges[grid.Edges[i][0]]
+            for j in range(max_egdes + 1):  # TODO throws out of bound exception
+                if edges[j][0] == -1:
+                    edges[j][0] = grid.Edges[i][1]
+                    edges[j][1] = grid.Edges[i][2]
+                    break
         return grid

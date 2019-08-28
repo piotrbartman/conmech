@@ -61,6 +61,8 @@ class Drawer:
         u = np.concatenate((solver.u, np.zeros(setup.cells_number[0] + 1)))
         plt.scatter(grid.Points[:, 0], grid.Points[:, 1], marker='o', c=u, cmap="Reds")
 
+        plt.colorbar()
+
         # i = len(grid.Edges) - 1
         # j = len(grid.Edges) - grid.BorderEdgesD - 1
         # while j < i:

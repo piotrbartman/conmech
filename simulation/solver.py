@@ -8,6 +8,7 @@ Created at 21.08.2019
 import numpy as np
 from simulation.matrices import Matrices
 from simulation.f import F
+import numba
 
 
 class Solver:
@@ -16,7 +17,8 @@ class Solver:
 
         self.grid = grid
 
-        self.B = Matrices.construct_B(grid)
+        B = Matrices.construct_B(grid)
+        self.B = B[(1, 1)] + B[(2, 2)]
         self.F = F(grid, F0, FN)
 
         self.alpha = alpha
@@ -51,30 +53,64 @@ class Solver:
             umL += u[e2] * 0.5
         return umL
 
-    def JZu(self):
-        JZu = np.zeros(self.grid.ind_num)
+    # TODO cleanup
+    @staticmethod
+    @numba.jit()
+    def numba_JZu(ind_num, Edges, Points, u, alpha, BorderEdgesD, BorderEdgesN, BorderEdgesC):
+        JZu = np.zeros(ind_num)
 
-        for i in range(self.grid.ind_num):
-            for e in range(-self.grid.BorderEdgesD - self.grid.BorderEdgesN - self.grid.BorderEdgesC,
-                           -self.grid.BorderEdgesD - self.grid.BorderEdgesN):
-                e1 = self.grid.Edges[e][0]
-                e2 = self.grid.Edges[e][1]
+        for i in range(ind_num):
+            for e in range(-BorderEdgesD - BorderEdgesN - BorderEdgesC,
+                           -BorderEdgesD - BorderEdgesN):
+                e1 = Edges[e][0]
+                e2 = Edges[e][1]
                 if i == e1 or i == e2:
-                    umL = Solver.u_at_middle(e1, e2, self.grid.ind_num, self.u)
+                    # umL = Solver.u_at_middle(e1, e2, ind_num, u)
 
-                    p1 = self.grid.Points[e1][:2]
-                    p2 = self.grid.Points[e2][:2]
+                    p1 = Points[e1][:2]
+                    p2 = Points[e2][:2]
 
-                    L = Solver.distance(p1, p2)
+                    L = np.sqrt(np.sum((p1 - p2) ** 2)) #Solver.distance(p1, p2)
+                    x1 = (p1[0] + p2[0]) * 0.5
+                    # TODO
+                    JZu[i] += L * 0.5 * (-x1) #self.regular_dphi(umL, b, rho)
 
-                    JZu[i] += L * 0.5 * self.regular_dphi(umL, self.b, self.rho)
-
-        JZu *= self.alpha
-
+        JZu *= alpha
         return JZu
 
+    def JZu(self):
+        # JZu = np.zeros(self.grid.ind_num)
+        #
+        # for i in range(self.grid.ind_num):
+        #     for e in range(-self.grid.BorderEdgesD - self.grid.BorderEdgesN - self.grid.BorderEdgesC,
+        #                    -self.grid.BorderEdgesD - self.grid.BorderEdgesN):
+        #         e1 = self.grid.Edges[e][0]
+        #         e2 = self.grid.Edges[e][1]
+        #         if i == e1 or i == e2:
+        #             umL = Solver.u_at_middle(e1, e2, self.grid.ind_num, self.u)
+        #
+        #             p1 = self.grid.Points[e1][:2]
+        #             p2 = self.grid.Points[e2][:2]
+        #
+        #             L = Solver.distance(p1, p2)
+        #             x1 = (p1[0] + p2[0]) * 0.5
+        #             JZu[i] += L * 0.5 * (-x1)#(-np.pi * np.sin(np.pi * (p1[0] + p2[0]) * 0.5)) # self.regular_dphi(umL, self.b, self.rho)
+        #
+        # JZu *= self.alpha
+        JZu = Solver.numba_JZu(self.grid.ind_num, self.grid.Edges, self.grid.Points, self.u, self.alpha,
+                               self.grid.BorderEdgesD, self.grid.BorderEdgesN, self.grid.BorderEdgesC)
+        return JZu
+
+    # TODO cleanup
+    @staticmethod
+    @numba.jit()
+    def numba_Bu1(B, u):
+        result = np.dot(B, u)
+        return result
+
     def Bu1(self):
-        result = np.dot((self.B[(1, 1)] + self.B[(2, 2)]), self.u)
+        # result = np.dot((self.B[(1, 1)] + self.B[(2, 2)]), self.u)
+        result = Solver.numba_Bu1(self.B, self.u)
         return result
 
     def f(self, u_vector):

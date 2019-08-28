@@ -117,7 +117,8 @@ class F:
                 e2 = int(self.grid.Edges[e][1])
                 p1 = self.grid.Points[int(e1)][0:2]
                 p2 = self.grid.Points[int(e2)][0:2]
+                x = (p1 + p2) * 0.5
                 if i == e1 or i == e2:
-                    self.F[i] += ((self.grid.longTriangleSide * 0.5) * self.fN((p1 + p2) )) #* 0.5)) TODO
+                    self.F[i] += ((self.grid.longTriangleSide * 0.5) * self.fN(x))
 
         self.Zero = self.F[:]
