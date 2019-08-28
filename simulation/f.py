@@ -13,18 +13,18 @@ class F:
         self.F0 = F0
         self.FN = FN
         self.grid = grid
-        self.F = np.zeros([self.grid.indNumber(), 2])
-        self.Zero = np.zeros([self.grid.indNumber()])
-        self.One = np.zeros([self.grid.indNumber()])
+        self.F = None
+        self.Zero = np.zeros(self.grid.ind_num)
+        self.One = np.zeros(self.grid.ind_num)
 
     # TODO: inject?
     ########################################################
 
     def f0(self, x):
-        return self.F0
+        return self.F0(*x)
 
     def fN(self, x):
-        return self.FN
+        return self.FN(*x)
 
     ########################################################
 
@@ -32,9 +32,9 @@ class F:
         half_long_triangle_side = self.grid.halfLongTriangleSide
         half_short_triangle_side = self.grid.halfShortTriangleSide
 
-        self.F = np.zeros([self.grid.indNumber(), 2])
+        self.F = np.zeros(self.grid.ind_num)
 
-        for i in range(0, self.grid.indNumber()):
+        for i in range(self.grid.ind_num):
             x = self.grid.Points[i][0]
             y = self.grid.Points[i][1]
             t = self.grid.Points[i][2]
@@ -42,7 +42,7 @@ class F:
             # TODO: static class Point?
             if t != self.grid.CROSS:  # normal point
                 # TODO: clean up
-                values_in_triangle = np.zeros([8, 2])
+                values_in_triangle = np.zeros(8)
 
                 values_in_triangle[0] += self.f0([x - half_long_triangle_side, y])
                 values_in_triangle[0] += self.f0([x - half_short_triangle_side, y + half_short_triangle_side])
@@ -90,7 +90,7 @@ class F:
 
             else:  # cross point
 
-                values_in_triangle = np.zeros([4, 2])
+                values_in_triangle = np.zeros(4)
 
                 values_in_triangle[0] += self.f0([x - half_short_triangle_side, y - half_short_triangle_side])
                 values_in_triangle[0] += self.f0([x - half_short_triangle_side, y + half_short_triangle_side])
@@ -111,14 +111,13 @@ class F:
 
                 self.F[i] = (float(self.grid.TriangleArea) / 6) * self.F[i]
 
-        for i in range(0, self.grid.indNumber()):
+        for i in range(self.grid.ind_num):
             for e in range(-self.grid.BorderEdgesD - self.grid.BorderEdgesN, -self.grid.BorderEdgesD):
                 e1 = int(self.grid.Edges[e][0])
                 e2 = int(self.grid.Edges[e][1])
                 p1 = self.grid.Points[int(e1)][0:2]
                 p2 = self.grid.Points[int(e2)][0:2]
                 if i == e1 or i == e2:
-                    self.F[i] += ((self.grid.longTriangleSide * 0.5) * self.fN((p1 + p2) * 0.5))
+                    self.F[i] += ((self.grid.longTriangleSide * 0.5) * self.fN((p1 + p2) )) #* 0.5)) TODO
 
-        self.Zero = self.F[:, 0]
-        self.One = self.F[:, 1]
+        self.Zero = self.F[:]

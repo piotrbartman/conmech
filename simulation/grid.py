@@ -23,7 +23,7 @@ class Grid:
 
     def __init__(self):
         self.Points = np.zeros([0, 3])
-        self.Edges = np.zeros([0, 3])
+        self.Edges = np.zeros([0, 3], dtype=np.int)
         # TODO: bad practice
         #  i, j, type: (always i<j on plane)
         #  0 - no edge
@@ -45,6 +45,10 @@ class Grid:
         self.TriangleArea = 0
 
     def indNumber(self):
+        return len(self.Points) - self.BorderEdgesD - 1
+
+    @property
+    def ind_num(self):
         return len(self.Points) - self.BorderEdgesD - 1
 
     def getPoint(self, x, y):

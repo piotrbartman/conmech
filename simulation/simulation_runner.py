@@ -19,9 +19,9 @@ class SimulationRunner:
         grid = GridFactory.construct(setup.cells_number[0],
                                      setup.cells_number[1],
                                      setup.gridHeight)
-        solver = Solver(grid, setup.F0, setup.FN)
+        solver = Solver(grid, setup.f, setup.g, setup.alpha, setup.regular_dphi, setup.b, setup.rho)
 
-        u_vector = np.zeros(2 * grid.indNumber())
+        u_vector = np.zeros(grid.ind_num)
 
         solver.F.setF()
 
@@ -33,7 +33,7 @@ class SimulationRunner:
             else:
                 print(f"Quality = {quality_inv**-1} is too low, trying again...")
 
-        solver.set_u_and_displaced_points(u_vector)
+        # solver.set_u_and_displaced_points(u_vector)
 
         # TODO: separate drawing
-        Drawer(solver).draw()
+        Drawer.draw(solver, setup)

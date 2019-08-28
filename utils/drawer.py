@@ -7,20 +7,16 @@ Created at 21.08.2019
 
 import matplotlib.pyplot as plt
 import pylab
+import numpy as np
 
 
 class Drawer:
-
-    def __init__(self, solv):
-        self.solv = solv
-        self.grid = solv.grid
-
-    def draw(self):
-
-        txt = 'CROSS EQUATION GR' + str(self.grid.SizeH) + ' ' + str(self.grid.SizeL) \
-              + ' (ml ' + str(self.solv.mi) + " " + str(self.solv.la) \
-              + ') F0[' + str(self.solv.F.F0[0]) + ',' + str(self.solv.F.F0[1]) \
-              + '] FN[' + str(self.solv.F.FN[0]) + ',' + str(self.solv.F.FN[1]) + ']'
+    @staticmethod
+    def draw(solver, setup):
+        grid = solver.grid
+        txt = 'CROSS EQUATION GR' + str(grid.SizeH) + ' ' + str(grid.SizeL) \
+              + ') F0[' + str(solver.F.F0) \
+              + '] FN[' + str(solver.F.FN) + ']'
 
         plt.close()
         pylab.axes().set_aspect('equal', 'box')
@@ -28,75 +24,75 @@ class Drawer:
         shadow = 0.1
         thickness1 = thickness2 = 2
 
-        i = len(self.grid.Edges) - 1
-        j = len(self.grid.Edges) - self.grid.BorderEdgesD - 1
+        i = len(grid.Edges) - 1
+        j = len(grid.Edges) - grid.BorderEdgesD - 1
         while j < i:
-            x1 = self.grid.Points[int(self.grid.Edges[i, 0])][0]
-            y1 = self.grid.Points[int(self.grid.Edges[i, 0])][1]
-            x2 = self.grid.Points[int(self.grid.Edges[i, 1])][0]
-            y2 = self.grid.Points[int(self.grid.Edges[i, 1])][1]
+            x1 = grid.Points[int(grid.Edges[i, 0])][0]
+            y1 = grid.Points[int(grid.Edges[i, 0])][1]
+            x2 = grid.Points[int(grid.Edges[i, 1])][0]
+            y2 = grid.Points[int(grid.Edges[i, 1])][1]
             plt.plot([x1, x2], [y1, y2], 'k-', alpha=shadow, lw=thickness1)
             i -= 1
-        j -= self.grid.BorderEdgesN
+        j -= grid.BorderEdgesN
         while j < i:
-            x1 = self.grid.Points[int(self.grid.Edges[i, 0])][0]
-            y1 = self.grid.Points[int(self.grid.Edges[i, 0])][1]
-            x2 = self.grid.Points[int(self.grid.Edges[i, 1])][0]
-            y2 = self.grid.Points[int(self.grid.Edges[i, 1])][1]
+            x1 = grid.Points[int(grid.Edges[i, 0])][0]
+            y1 = grid.Points[int(grid.Edges[i, 0])][1]
+            x2 = grid.Points[int(grid.Edges[i, 1])][0]
+            y2 = grid.Points[int(grid.Edges[i, 1])][1]
             plt.plot([x1, x2], [y1, y2], 'k-', alpha=shadow, lw=thickness1)
             i -= 1
-        j -= self.grid.BorderEdgesC
+        j -= grid.BorderEdgesC
         while j < i:
-            x1 = self.grid.Points[int(self.grid.Edges[i, 0])][0]
-            y1 = self.grid.Points[int(self.grid.Edges[i, 0])][1]
-            x2 = self.grid.Points[int(self.grid.Edges[i, 1])][0]
-            y2 = self.grid.Points[int(self.grid.Edges[i, 1])][1]
+            x1 = grid.Points[int(grid.Edges[i, 0])][0]
+            y1 = grid.Points[int(grid.Edges[i, 0])][1]
+            x2 = grid.Points[int(grid.Edges[i, 1])][0]
+            y2 = grid.Points[int(grid.Edges[i, 1])][1]
             plt.plot([x1, x2], [y1, y2], 'k-', alpha=shadow, lw=thickness1)
             i -= 1
         while -1 < i:
-            x1 = self.grid.Points[int(self.grid.Edges[i, 0])][0]
-            y1 = self.grid.Points[int(self.grid.Edges[i, 0])][1]
-            x2 = self.grid.Points[int(self.grid.Edges[i, 1])][0]
-            y2 = self.grid.Points[int(self.grid.Edges[i, 1])][1]
+            x1 = grid.Points[int(grid.Edges[i, 0])][0]
+            y1 = grid.Points[int(grid.Edges[i, 0])][1]
+            x2 = grid.Points[int(grid.Edges[i, 1])][0]
+            y2 = grid.Points[int(grid.Edges[i, 1])][1]
             plt.plot([x1, x2], [y1, y2], 'k-', alpha=shadow, lw=thickness1)
             i -= 1
 
             # ------------
+        u = np.concatenate((solver.u, np.zeros(setup.cells_number[0] + 1)))
+        plt.scatter(grid.Points[:, 0], grid.Points[:, 1], marker='o', c=u, cmap="Reds")
 
-        # plt.scatter(self.solver.DisplacedPoints[:,0],self.solver.DisplacedPoints[:,1], marker='o')
-
-        i = len(self.grid.Edges) - 1
-        j = len(self.grid.Edges) - self.grid.BorderEdgesD - 1
-        while j < i:
-            x1 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 0])][0]
-            y1 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 0])][1]
-            x2 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 1])][0]
-            y2 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 1])][1]
-            plt.plot([x1, x2], [y1, y2], 'r-', lw=thickness2)
-            i -= 1
-        j -= self.grid.BorderEdgesN
-        while j < i:
-            x1 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 0])][0]
-            y1 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 0])][1]
-            x2 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 1])][0]
-            y2 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 1])][1]
-            plt.plot([x1, x2], [y1, y2], 'b-', lw=thickness2)
-            i -= 1
-        j -= self.grid.BorderEdgesC
-        while j < i:
-            x1 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 0])][0]
-            y1 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 0])][1]
-            x2 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 1])][0]
-            y2 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 1])][1]
-            plt.plot([x1, x2], [y1, y2], 'y-', lw=thickness2)
-            i -= 1
-        while -1 < i:
-            x1 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 0])][0]
-            y1 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 0])][1]
-            x2 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 1])][0]
-            y2 = self.solv.DisplacedPoints[int(self.grid.Edges[i, 1])][1]
-            plt.plot([x1, x2], [y1, y2], 'k-', lw=thickness2)
-            i -= 1
+        # i = len(grid.Edges) - 1
+        # j = len(grid.Edges) - grid.BorderEdgesD - 1
+        # while j < i:
+        #     x1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][0]
+        #     y1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][1]
+        #     x2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][0]
+        #     y2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][1]
+        #     plt.plot([x1, x2], [y1, y2], 'r-', lw=thickness2)
+        #     i -= 1
+        # j -= grid.BorderEdgesN
+        # while j < i:
+        #     x1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][0]
+        #     y1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][1]
+        #     x2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][0]
+        #     y2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][1]
+        #     plt.plot([x1, x2], [y1, y2], 'b-', lw=thickness2)
+        #     i -= 1
+        # j -= grid.BorderEdgesC
+        # while j < i:
+        #     x1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][0]
+        #     y1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][1]
+        #     x2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][0]
+        #     y2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][1]
+        #     plt.plot([x1, x2], [y1, y2], 'y-', lw=thickness2)
+        #     i -= 1
+        # while -1 < i:
+        #     x1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][0]
+        #     y1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][1]
+        #     x2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][0]
+        #     y2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][1]
+        #     plt.plot([x1, x2], [y1, y2], 'k-', lw=thickness2)
+        #     i -= 1
 
             # ------------
 

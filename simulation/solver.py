@@ -12,23 +12,23 @@ from simulation.f import F
 
 class Solver:
 
-    def __init__(self, grid, F0, FN):
+    def __init__(self, grid, F0, FN, alpha, regular_dphi, b, rho):
 
         self.grid = grid
 
-        self.M = Matrices(grid)
+        self.B = Matrices.construct_B(grid)
         self.F = F(grid, F0, FN)
 
-        self.u = np.zeros([self.grid.indNumber(), 2])
+        self.alpha = alpha
+        self.regular_dphi = regular_dphi
+        self.b = b
+        self.rho = rho
 
-        self.DisplacedPoints = np.zeros([len(self.grid.Points), 3])
-
-        for i in range(0, len(self.grid.Points)):
-            self.DisplacedPoints[i] = self.grid.Points[i]
+        self.u = np.empty(self.grid.ind_num)
 
     @staticmethod
-    def length(p1, p2):
-        return float(np.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1])))
+    def distance(p1, p2):
+        return np.sqrt(np.sum((p1 - p2) ** 2))
 
     def n_down(self, e):
         # [0,-1]
@@ -42,81 +42,51 @@ class Solver:
             n = -n
         return n
 
-    def JZu(self):
-        JZu = np.zeros([self.grid.indNumber(), 2])
+    @staticmethod
+    def u_at_middle(e1, e2, ind_num, u):
+        umL = 0  # u at mL
+        if e1 < ind_num:
+            umL += u[e1] * 0.5
+        if e2 < ind_num:
+            umL += u[e2] * 0.5
+        return umL
 
-        for i in range(0, self.grid.indNumber()):
+    def JZu(self):
+        JZu = np.zeros(self.grid.ind_num)
+
+        for i in range(self.grid.ind_num):
             for e in range(-self.grid.BorderEdgesD - self.grid.BorderEdgesN - self.grid.BorderEdgesC,
                            -self.grid.BorderEdgesD - self.grid.BorderEdgesN):
-                e1 = int(self.grid.Edges[e][0])
-                e2 = int(self.grid.Edges[e][1])
+                e1 = self.grid.Edges[e][0]
+                e2 = self.grid.Edges[e][1]
                 if i == e1 or i == e2:
-                    umL = 0  # u at mL
-                    if e1 < self.grid.indNumber():
-                        umL += self.u[e1] * 0.5
-                    if e2 < self.grid.indNumber():
-                        umL += self.u[e2] * 0.5
+                    umL = Solver.u_at_middle(e1, e2, self.grid.ind_num, self.u)
 
-                    p1 = self.grid.Points[int(e1)][0:2]
-                    p2 = self.grid.Points[int(e2)][0:2]
-                    mL = (p1 + p2) * 0.5
-                    L = self.length(p1, p2)
-                    nmL = self.n_down(e)  # n at mL
+                    p1 = self.grid.Points[e1][:2]
+                    p2 = self.grid.Points[e2][:2]
 
-                    uNmL = umL[0] * nmL[0] + umL[1] * nmL[1]
-                    uTmL = umL - uNmL * nmL
+                    L = Solver.distance(p1, p2)
 
-                    vNZero = nmL[0]
-                    vNOne = nmL[1]
-                    vThauZero = [1. - float(nmL[0] * nmL[0]), - float(nmL[0] * nmL[1])]
-                    vThauOne = [- float(nmL[0] * nmL[1]), 1. - float(nmL[1] * nmL[1])]
+                    JZu[i] += L * 0.5 * self.regular_dphi(umL, self.b, self.rho)
 
-                    JZu[i][0] += L * 0.5 * (self.jnZ(uNmL, vNZero) + self.h(uNmL) * self.jtZ(uTmL, vThauZero))
-                    JZu[i][1] += L * 0.5 * (self.jnZ(uNmL, vNOne) + self.h(uNmL) * self.jtZ(uTmL, vThauOne))
+        JZu *= self.alpha
 
         return JZu
 
-    def set_u_and_displaced_points(self, u_vector):
-        self.u = u_vector.reshape((2, -1)).T
-
-        self.DisplacedPoints[:self.grid.indNumber(), :2] = self.grid.Points[:self.grid.indNumber(), :2] + self.u[:, :2]
-
     def Bu1(self):
-        result = np.dot(self.M.B11, self.u[:, 0]) + np.dot(self.M.B12, self.u[:, 1])
-        return result
-
-    def Bu2(self):
-        result = np.dot(self.M.B21, self.u[:, 0]) + np.dot(self.M.B22, self.u[:, 1])
+        result = np.dot((self.B[(1, 1)] + self.B[(2, 2)]), self.u)
         return result
 
     def f(self, u_vector):
-        self.u = np.zeros([self.grid.indNumber(), 2])
-        self.u[:, 0] = u_vector[0:self.grid.indNumber()]
-        self.u[:, 1] = u_vector[self.grid.indNumber():2 * self.grid.indNumber()]
+        self.u = u_vector
 
         X = self.Bu1() \
-            + self.JZu()[:, 0] \
+            + self.JZu() \
             - self.F.Zero
 
-        Y = self.Bu2() \
-            + self.JZu()[:, 1] \
-            - self.F.One
-
-        return 100000000 * np.append(X, Y)  # 10000000000
+        return 100000000 * X  # 10000000000
 
     ########################################################
-
-    knu = 1.
-    delta = 0.1
-
-    def jnZ(self, uN, vN):  # un, vN - scalars
-        if uN <= 0:
-            return 0 * vN
-        return (self.knu * uN) * vN
-
-    @staticmethod
-    def h(uN):
-        return 0
 
     @staticmethod
     def jtZ(uT, vT, rho=0.0000001):  # uT, vT - vectors; REGULARYZACJA Coulomba
