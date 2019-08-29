@@ -1,17 +1,29 @@
 """
-Created at 21.08.2019
+Created at 29.08.2019
 
 @author: Michał Jureczka
 @author: Piotr Bartman
 """
 
 import numpy as np
+from simulation.grid.point import Point
+from simulation.grid.edge import Edge
+from simulation.f import F
+from simulation.solver.solver import Solver
 
-from simulation.point import Point
-from simulation.edge import Edge
 
+class SolverFactory:
+    @staticmethod
+    def construct(grid, F0, FN, alpha, regular_dphi, b, rho):
+        solver = Solver(grid, F0, FN, alpha, regular_dphi, b, rho)
 
-class Matrices:
+        B = SolverFactory.construct_B(grid)
+        solver.B = B[(1, 1)] + B[(2, 2)]
+
+        solver.F = F(grid, F0, FN)
+        solver.F.setF()
+
+        return solver
 
     @staticmethod
     def construct_B(grid):
@@ -21,8 +33,8 @@ class Matrices:
             p = grid.Points[i]
             AX[i], AY[i] = Point.ax_ay(p)
 
-        W11 = Matrices.multiply(grid, AX, AX)
-        W22 = Matrices.multiply(grid, AY, AY)
+        W11 = SolverFactory.multiply(grid, AX, AX)
+        W22 = SolverFactory.multiply(grid, AY, AY)
 
         B = {(1, 1): W11,
              (2, 2): W22

@@ -7,7 +7,7 @@ Created at 22.08.2019
 
 import numpy as np
 
-from simulation.grid import Grid
+from simulation.grid.grid import Grid
 
 
 class Point:

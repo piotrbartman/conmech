@@ -30,12 +30,12 @@ class Setup:
             result = - np.pi * np.sin(np.pi * x1)
         return result
 
-    # @staticmethod
-    # def regular_dphi(r, b, rho):
-    #     # x = r - b
-    #     # result = x / np.sqrt(x**2 + rho**2)
-    #     result = 0
-    #     return result
+    @staticmethod
+    def regular_dphi(r, b, rho):
+        # x = r - b
+        # result = x / np.sqrt(x**2 + rho**2)
+        result = 0
+        return result
 
 
 if __name__ == '__main__':
