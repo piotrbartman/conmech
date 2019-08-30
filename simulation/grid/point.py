@@ -7,8 +7,6 @@ Created at 22.08.2019
 
 import numpy as np
 
-from simulation.grid.grid import Grid
-
 
 class Point:
     LEFT_BOTTOM_CORNER = 0
@@ -23,31 +21,26 @@ class Point:
     CROSS = 9
 
     @staticmethod
-    def ax_ay(point):
-        n_dx = np.array([1., 1., -1., -1., -1., -1., 1., 1.]) * 0.5  # normal dx
-        n_dy = np.array([-1., -1., -1., -1., 1., 1., 1., 1.]) * 0.5
-
-        c_dx = np.array([1., 0., -1., 0., 0., 0., 0., 0.])  # cross dx
-        c_dy = np.array([0., -1., 0., 1., 0., 0., 0., 0.])
-
-        dx = n_dx
-        dy = n_dy
-        if point[2] == Grid.TOP:
+    def gradients(point):
+        dx = np.array([1., 1., -1., -1., -1., -1., 1., 1.]) * 0.5  # normal dx
+        dy = np.array([-1., -1., -1., -1., 1., 1., 1., 1.]) * 0.5
+        
+        if point[2] == Point.TOP:
             f = np.array([0, 0, 0, 0, 1, 1, 1, 1])
-        elif point[2] == Grid.RIGHT_TOP_CORNER:
+        elif point[2] == Point.RIGHT_TOP_CORNER:
             f = np.array([0, 0, 0, 0, 0, 0, 1, 1])
-        elif point[2] == Grid.RIGHT_SIDE:
+        elif point[2] == Point.RIGHT_SIDE:
             f = np.array([1, 1, 0, 0, 0, 0, 1, 1])
-        elif point[2] == Grid.RIGHT_BOTTOM_CORNER:
+        elif point[2] == Point.RIGHT_BOTTOM_CORNER:
             f = np.array([1, 1, 0, 0, 0, 0, 0, 0])
-        elif point[2] == Grid.BOTTOM:
+        elif point[2] == Point.BOTTOM:
             f = np.array([1, 1, 1, 1, 0, 0, 0, 0])
-        elif point[2] == Grid.NORMAL_MIDDLE:
+        elif point[2] == Point.NORMAL_MIDDLE:
             f = np.array([1, 1, 1, 1, 1, 1, 1, 1])
-        elif point[2] == Grid.CROSS:
+        elif point[2] == Point.CROSS:
             f = np.array([1, 1, 1, 1, 0, 0, 0, 0])  # only 4 used
-            dx = c_dx
-            dy = c_dy
+            dx = np.array([1., 0., -1., 0., 0., 0., 0., 0.])  # cross dx
+            dy = np.array([0., -1., 0., 1., 0., 0., 0., 0.])
         else:
             raise ValueError
 

@@ -24,7 +24,7 @@ class GridFactory:
             grid.Edges[i][1] += 1
 
     @staticmethod
-    def addEdge(grid, i, j, t):  # zawsze(i,j) ma i<j na x lub x równe oraz i<j na y
+    def addEdge(grid, i, j, t):  # (i,j): xi <= xj and yi < yj
         a = i
         b = j
         if (grid.Points[j][0] < grid.Points[i][0] or
@@ -53,25 +53,25 @@ class GridFactory:
     def addBorderNTop(grid, x, y):
         GridFactory.addPoint(grid, x, y, 3)
         GridFactory.addEdge(grid, 1, 0, 1)
-        grid.BorderEdgesN += 1
+        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderNTopLast(grid, x, y):
         GridFactory.addPoint(grid, x, y, 4)
         GridFactory.addEdge(grid, 1, 0, 1)
-        grid.BorderEdgesN += 1
+        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderNSide(grid, x, y):
         GridFactory.addPoint(grid, x, y, 5)
         GridFactory.addEdge(grid, 0, 1, 2)
-        grid.BorderEdgesN += 1
+        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderNSideLast(grid, x, y):
         GridFactory.addPoint(grid, x, y, 6)
         GridFactory.addEdge(grid, 0, 1, 2)
-        grid.BorderEdgesN += 1
+        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderC(grid, x, y):
@@ -89,13 +89,13 @@ class GridFactory:
         grid = Grid()
         grid.SizeH = sizeH
         grid.SizeL = sizeL
-        grid.Height = height
-        grid.longTriangleSide = float(height) / sizeH
+        grid.Height = float(height)
+        grid.longTriangleSide = grid.Height / sizeH
         grid.Length = grid.longTriangleSide * sizeL
 
-        grid.halfLongTriangleSide = float(grid.longTriangleSide) * 0.5
-        grid.shortTriangleSide = float(grid.longTriangleSide) * np.sqrt(2) * 0.5
-        grid.halfShortTriangleSide = float(grid.shortTriangleSide) * 0.5
+        grid.halfLongTriangleSide = grid.longTriangleSide * 0.5
+        grid.shortTriangleSide = grid.longTriangleSide * np.sqrt(2.) * 0.5
+        grid.halfShortTriangleSide = grid.shortTriangleSide * 0.5
         grid.TriangleArea = (grid.longTriangleSide * grid.longTriangleSide) / 4.
 
         GridFactory.startBorder(grid, 0, 0)
@@ -105,12 +105,12 @@ class GridFactory:
         GridFactory.addBorderDLast(grid, 0, float(sizeH) * grid.longTriangleSide)
 
         for i in range(1, sizeL):
-            GridFactory.addBorderNTop(grid, float(i) * grid.longTriangleSide, height)
-        GridFactory.addBorderNTopLast(grid, float(sizeL) * grid.longTriangleSide, height)
+            GridFactory.addBorderNTop(grid, float(i) * grid.longTriangleSide, grid.Height)
+        GridFactory.addBorderNTopLast(grid, float(sizeL) * grid.longTriangleSide, grid.Height)
 
         for i in range(sizeH - 1, 0, -1):
             GridFactory.addBorderNSide(grid, grid.Length, float(i) * grid.longTriangleSide)
-        GridFactory.addBorderNSideLast(grid, grid.Length, float(0))
+        GridFactory.addBorderNSideLast(grid, grid.Length, 0.)
 
         for i in range(sizeL - 1, 0, -1):
             GridFactory.addBorderC(grid, float(i) * grid.longTriangleSide, 0)
@@ -154,12 +154,12 @@ class GridFactory:
                 b = grid.getPoint((float(i)) * grid.longTriangleSide, (float(j)) * grid.longTriangleSide)
                 GridFactory.addEdge(grid, a, b, 3)
 
-        max_egdes = 4
-        grid.edges = np.zeros((np.max(grid.Edges) + 1, max_egdes, 2), dtype=np.int)
+        max_edges = 4
+        grid.edges = np.zeros((np.max(grid.Edges) + 1, max_edges, 2), dtype=np.int)
         grid.edges -= 1
         for i in range(len(grid.Edges)):
             edges = grid.edges[grid.Edges[i][0]]
-            for j in range(max_egdes + 1):  # TODO throws out of bound exception
+            for j in range(max_edges):
                 if edges[j][0] == -1:
                     edges[j][0] = grid.Edges[i][1]
                     edges[j][1] = grid.Edges[i][2]

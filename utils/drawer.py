@@ -15,8 +15,8 @@ class Drawer:
     def draw(solver, setup):
         grid = solver.grid
         txt = 'CROSS EQUATION GR' + str(grid.SizeH) + ' ' + str(grid.SizeL) \
-              + ') F0[' + str(solver.F.F0) \
-              + '] FN[' + str(solver.F.FN) + ']'
+              + ') f[' + str(setup.f) \
+              + '] g[' + str(setup.g) + ']'
 
         plt.close()
         pylab.axes().set_aspect('equal', 'box')
@@ -58,7 +58,7 @@ class Drawer:
             i -= 1
 
             # ------------
-        u = np.concatenate((solver.u, np.zeros(setup.cells_number[0] + 1)))
+        u = np.concatenate((solver.u, np.zeros(solver.grid.BorderEdgesD + 1)))
         plt.scatter(grid.Points[:, 0], grid.Points[:, 1], marker='o', c=u, cmap="Reds")
 
         plt.colorbar()

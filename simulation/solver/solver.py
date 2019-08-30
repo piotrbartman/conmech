@@ -63,7 +63,7 @@ class Solver:
                     L = _distance(p1, p2)
                     x1 = (p1[0] + p2[0]) * 0.5
                     # TODO
-                    result[i] += L * 0.5 * (-x1) #self.regular_dphi(umL, b, rho)
+                    result[i] += L * 0.5 * regular_dphi(umL, 3., 0.001)
 
         result *= alpha
         return result
@@ -89,7 +89,7 @@ class Solver:
 
         X = self.Bu1() \
             + self.JZu() \
-            - self.F.Zero
+            - self.F.F
 
         return 1e8 * X
 
@@ -106,4 +106,11 @@ def _u_at_middle(e1, e2, ind_num, u):
         result += u[e1] * 0.5
     if e2 < ind_num:
         result += u[e2] * 0.5
+    return result
+
+
+@numba.jit()
+def regular_dphi(r, b, rho):
+    x = r - b
+    result = x / np.sqrt(x**2 + rho**2)
     return result

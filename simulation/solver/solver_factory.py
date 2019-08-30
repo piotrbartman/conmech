@@ -21,7 +21,6 @@ class SolverFactory:
         solver.B = B[(1, 1)] + B[(2, 2)]
 
         solver.F = F(grid, F0, FN)
-        solver.F.setF()
 
         return solver
 
@@ -29,9 +28,11 @@ class SolverFactory:
     def construct_B(grid):
         AX = np.zeros((grid.ind_num, 8))  # area with dx
         AY = np.zeros((grid.ind_num, 8))  # area with dy
+
+        grid.get_points(dirichlet=False, neumann=True, contact=True, inside=True)
         for i in range(grid.ind_num):
             p = grid.Points[i]
-            AX[i], AY[i] = Point.ax_ay(p)
+            AX[i], AY[i] = Point.gradients(p)
 
         W11 = SolverFactory.multiply(grid, AX, AX)
         W22 = SolverFactory.multiply(grid, AY, AY)
@@ -44,17 +45,18 @@ class SolverFactory:
 
     @staticmethod
     def multiply(grid, AK, AL):
-        W = np.zeros([grid.indNumber(), grid.indNumber()])
+        W = np.zeros([grid.ind_num, grid.ind_num])
 
-        for i in range(grid.indNumber()):
+        # grid.get_points()
+        for i in range(grid.ind_num):
             W[i][i] = np.sum(AK[i] * AL[i])
 
             # c - contacting triangles numbers
-            for j in range(grid.indNumber()):
+            for j in range(grid.ind_num):
                 edge = grid.get_edge(i, j)
-                c1i, c1j, c2i, c2j = Edge.c(edge)
 
-                if c1i >= 0:  # edge was found
+                if edge[0] >= 0:  # edge was found
+                    c1i, c1j, c2i, c2j = Edge.c(edge)
                     W[i][j] = AK[i][c1i] * AL[j][c1j] + AK[i][c2i] * AL[j][c2j]
                     W[j][i] = AL[i][c1i] * AK[j][c1j] + AL[i][c2i] * AK[j][c2j]
 

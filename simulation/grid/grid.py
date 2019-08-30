@@ -23,6 +23,7 @@ class Grid:
 
     def __init__(self):
         self.Points = np.zeros((0, 3))
+        self.points = np.zeros((0, 2))
         self.Edges = np.zeros((0, 3), dtype=np.int)  # TODO optimize (remove and use only edges)
         self.edges = np.zeros((0, 4, 2), dtype=np.int)
         # TODO: bad practice
@@ -32,6 +33,7 @@ class Grid:
         #  3 - from normal go right and up to cross, 4 - from cross go right and up to normal,
         #  5 - from normal go right and down to cross, 6 - from cross go right and down to normal
         #
+        self.borders = None
         self.BorderEdgesD = 0
         self.BorderEdgesN = 0
         self.BorderEdgesC = 0
@@ -44,9 +46,6 @@ class Grid:
         self.shortTriangleSide = 0
         self.halfShortTriangleSide = 0
         self.TriangleArea = 0
-
-    def indNumber(self):
-        return len(self.Points) - self.BorderEdgesD - 1
 
     @property
     def ind_num(self):
@@ -70,3 +69,6 @@ class Grid:
                 break
 
         return result
+
+    def get_points(self, *, dirichlet: bool, neumann: bool, contact: bool, inside: bool):
+        return

@@ -10,7 +10,7 @@ from simulation.simulation_runner import SimulationRunner
 
 class Setup:
     gridHeight = 1
-    cells_number = (20, 20)  # number of triangles per aside
+    cells_number = (30, 30)  # number of triangles per aside
 
     alpha = 1000
 
