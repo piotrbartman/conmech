@@ -70,7 +70,7 @@ class Solver:
 
     def JZu(self):
         JZu = Solver.numba_JZu(self.grid.ind_num, self.grid.Edges, self.grid.Points, self.u, self.alpha,
-                               self.grid.BorderEdgesD, self.grid.BorderEdgesN, self.grid.BorderEdgesC)
+                               self.grid.borders["Dirichlet"], self.grid.borders["Neumann"], self.grid.borders["Contact"])
         return JZu
 
     # TODO cleanup

@@ -25,7 +25,7 @@ class Drawer:
         thickness1 = thickness2 = 2
 
         i = len(grid.Edges) - 1
-        j = len(grid.Edges) - grid.BorderEdgesD - 1
+        j = len(grid.Edges) - grid.borders["Dirichlet"] - 1
         while j < i:
             x1 = grid.Points[int(grid.Edges[i, 0])][0]
             y1 = grid.Points[int(grid.Edges[i, 0])][1]
@@ -33,7 +33,7 @@ class Drawer:
             y2 = grid.Points[int(grid.Edges[i, 1])][1]
             plt.plot([x1, x2], [y1, y2], 'k-', alpha=shadow, lw=thickness1)
             i -= 1
-        j -= grid.BorderEdgesN
+        j -= grid.borders["Neumann"]
         while j < i:
             x1 = grid.Points[int(grid.Edges[i, 0])][0]
             y1 = grid.Points[int(grid.Edges[i, 0])][1]
@@ -41,7 +41,7 @@ class Drawer:
             y2 = grid.Points[int(grid.Edges[i, 1])][1]
             plt.plot([x1, x2], [y1, y2], 'k-', alpha=shadow, lw=thickness1)
             i -= 1
-        j -= grid.BorderEdgesC
+        j -= grid.borders["Contact"]
         while j < i:
             x1 = grid.Points[int(grid.Edges[i, 0])][0]
             y1 = grid.Points[int(grid.Edges[i, 0])][1]
@@ -58,13 +58,13 @@ class Drawer:
             i -= 1
 
             # ------------
-        u = np.concatenate((solver.u, np.zeros(solver.grid.BorderEdgesD + 1)))
+        u = np.concatenate((solver.u, np.zeros(solver.grid.borders["Dirichlet"] + 1)))
         plt.scatter(grid.Points[:, 0], grid.Points[:, 1], marker='o', c=u, cmap="Reds")
 
         plt.colorbar()
 
         # i = len(grid.Edges) - 1
-        # j = len(grid.Edges) - grid.BorderEdgesD - 1
+        # j = len(grid.Edges) - grid.borders["Dirichlet"] - 1
         # while j < i:
         #     x1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][0]
         #     y1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][1]
@@ -72,7 +72,7 @@ class Drawer:
         #     y2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][1]
         #     plt.plot([x1, x2], [y1, y2], 'r-', lw=thickness2)
         #     i -= 1
-        # j -= grid.BorderEdgesN
+        # j -= grid.borders["Neumann"]
         # while j < i:
         #     x1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][0]
         #     y1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][1]
@@ -80,7 +80,7 @@ class Drawer:
         #     y2 = solver.DisplacedPoints[int(grid.Edges[i, 1])][1]
         #     plt.plot([x1, x2], [y1, y2], 'b-', lw=thickness2)
         #     i -= 1
-        # j -= grid.BorderEdgesC
+        # j -= grid.borders["Contact"]
         # while j < i:
         #     x1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][0]
         #     y1 = solver.DisplacedPoints[int(grid.Edges[i, 0])][1]

@@ -26,7 +26,7 @@ class F:
             y = grid.Points[i][1]
             t = grid.Points[i][2]
 
-            if t != grid.CROSS:  # normal point
+            if t != Point.CROSS:  # normal point
                 # TODO: clean up
                 values_in_triangle = np.zeros(8)
 
@@ -99,7 +99,7 @@ class F:
 
         # grid.get_points()
         for i in range(grid.ind_num):
-            for e in range(-grid.BorderEdgesD - grid.BorderEdgesN, -grid.BorderEdgesD):
+            for e in range(-grid.borders["Dirichlet"] - grid.borders["Neumann"], -grid.borders["Dirichlet"]):
                 e1 = int(grid.Edges[e][0])
                 e2 = int(grid.Edges[e][1])
                 p1 = grid.Points[int(e1)][0:2]

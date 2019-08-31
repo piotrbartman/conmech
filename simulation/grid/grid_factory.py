@@ -41,51 +41,43 @@ class GridFactory:
     def addBorderD(grid, x, y):
         GridFactory.addPoint(grid, x, y, 1)
         GridFactory.addEdge(grid, 1, 0, 2)
-        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderDLast(grid, x, y):
         GridFactory.addPoint(grid, x, y, 2)
         GridFactory.addEdge(grid, 1, 0, 2)
-        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderNTop(grid, x, y):
         GridFactory.addPoint(grid, x, y, 3)
         GridFactory.addEdge(grid, 1, 0, 1)
-        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderNTopLast(grid, x, y):
         GridFactory.addPoint(grid, x, y, 4)
         GridFactory.addEdge(grid, 1, 0, 1)
-        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderNSide(grid, x, y):
         GridFactory.addPoint(grid, x, y, 5)
         GridFactory.addEdge(grid, 0, 1, 2)
-        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderNSideLast(grid, x, y):
         GridFactory.addPoint(grid, x, y, 6)
         GridFactory.addEdge(grid, 0, 1, 2)
-        grid.BorderEdgesD += 1
 
     @staticmethod
     def addBorderC(grid, x, y):
         GridFactory.addPoint(grid, x, y, 7)
         GridFactory.addEdge(grid, 0, 1, 1)
-        grid.BorderEdgesC += 1
 
     @staticmethod
     def stopBorder(grid):
         GridFactory.addEdge(grid, len(grid.Points) - 1, 0, 1)
-        grid.BorderEdgesC += 1
 
     @staticmethod
-    def construct(sizeH, sizeL, height):
+    def construct(sizeH, sizeL, height, left, top, right, bottom):
         grid = Grid()
         grid.SizeH = sizeH
         grid.SizeL = sizeL
@@ -102,20 +94,28 @@ class GridFactory:
 
         for i in range(1, sizeH):
             GridFactory.addBorderD(grid, 0, float(i) * grid.longTriangleSide)
+            grid.borders[left] += 1
         GridFactory.addBorderDLast(grid, 0, float(sizeH) * grid.longTriangleSide)
+        grid.borders[left] += 1
 
         for i in range(1, sizeL):
             GridFactory.addBorderNTop(grid, float(i) * grid.longTriangleSide, grid.Height)
+            grid.borders[top] += 1
         GridFactory.addBorderNTopLast(grid, float(sizeL) * grid.longTriangleSide, grid.Height)
+        grid.borders[top] += 1
 
         for i in range(sizeH - 1, 0, -1):
             GridFactory.addBorderNSide(grid, grid.Length, float(i) * grid.longTriangleSide)
+            grid.borders[right] += 1
         GridFactory.addBorderNSideLast(grid, grid.Length, 0.)
+        grid.borders[right] += 1
 
         for i in range(sizeL - 1, 0, -1):
             GridFactory.addBorderC(grid, float(i) * grid.longTriangleSide, 0)
+            grid.borders[bottom] += 1
 
         GridFactory.stopBorder(grid)
+        grid.borders[bottom] += 1
 
         for i in range(sizeL):
             for j in range(1, sizeH):

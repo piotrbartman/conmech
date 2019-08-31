@@ -6,17 +6,20 @@ Created at 21.08.2019
 
 import numpy as np
 from simulation.simulation_runner import SimulationRunner
+from simulation.grid.grid import Grid
 import numba
 
 
 class Setup:
     gridHeight = 1
     cells_number = (20, 20)  # number of triangles per aside
+    grid_left_border = Grid.DIRICHLET
+    grid_top_border = Grid.DIRICHLET
+    grid_right_border = Grid.DIRICHLET
+    grid_bottom_border = Grid.CONTACT
 
-    alpha = 18
+    alpha = 2
 
-    # f = lambda x1, x2, x3: x1+x2+x3
-    # g = lambda x1, x2: 1
     b = 0
     rho = 1e-8
 
@@ -27,11 +30,8 @@ class Setup:
 
     @staticmethod
     def g(x1, x2):
-        if x1 == 1:
-            result = x2
-        if x2 == 1:
-            result = x1
-        return 0 * result
+        result = 0
+        return result
 
     @staticmethod
     @numba.jit()

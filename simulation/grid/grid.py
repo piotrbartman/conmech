@@ -9,17 +9,9 @@ import numpy as np
 
 
 class Grid:
-    # TODO: bad practice
-    LEFT_BOTTOM_CORNER = 0
-    LEFT_SIDE = 1
-    LEFT_TOP_CORNER = 2
-    TOP = 3
-    RIGHT_TOP_CORNER = 4
-    RIGHT_SIDE = 5
-    RIGHT_BOTTOM_CORNER = 6
-    BOTTOM = 7
-    NORMAL_MIDDLE = 8
-    CROSS = 9
+    DIRICHLET = "Dirichlet"
+    NEUMANN = "Neumann"
+    CONTACT = "Contact"
 
     def __init__(self):
         self.Points = np.zeros((0, 3))
@@ -33,10 +25,7 @@ class Grid:
         #  3 - from normal go right and up to cross, 4 - from cross go right and up to normal,
         #  5 - from normal go right and down to cross, 6 - from cross go right and down to normal
         #
-        self.borders = None
-        self.BorderEdgesD = 0
-        self.BorderEdgesN = 0
-        self.BorderEdgesC = 0
+        self.borders = {"Dirichlet": 0, "Neumann": 0, "Contact": 0}
         self.Height = 0
         self.Length = 0
         self.SizeH = 0
@@ -49,7 +38,7 @@ class Grid:
 
     @property
     def ind_num(self):
-        return len(self.Points) - self.BorderEdgesD - 1
+        return len(self.Points) - self.borders["Dirichlet"] - 1
 
     def getPoint(self, x, y):
         i = 0
@@ -69,6 +58,9 @@ class Grid:
                 break
 
         return result
+
+    def get_independent_points(self):
+        return self.get_points(dirichlet=False, neumann=True, contact=True, inside=True)
 
     def get_points(self, *, dirichlet: bool, neumann: bool, contact: bool, inside: bool):
         return
