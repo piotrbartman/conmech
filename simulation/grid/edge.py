@@ -7,6 +7,16 @@ Created at 22.08.2019
 
 
 class Edge:
+    # TODO:  documentation
+    # i, j, type: (always i<j on plane)
+    NON_EXISTENT = 0  # no edge
+    HORIZONTAL = 1  # from normal go right to normal
+    VERTICAL = 2  # from normal go up to normal,
+    TOP = 3  # from normal go right and up to cross
+    X_TOP = 4  # from cross go right and up to normal,
+    BOTTOM = 5  # from normal go right and down to cross
+    X_BOTTOM = 6  # from cross go right and down to normal
+
     @staticmethod
     def c(edge):
         if edge[2] == 1:  # 1 - from normal go right to normal

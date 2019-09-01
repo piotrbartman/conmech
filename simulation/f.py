@@ -20,11 +20,10 @@ class F:
 
         F = np.zeros(grid.ind_num)
 
-        # grid.get_points()
-        for i in range(grid.ind_num):
-            x = grid.Points[i][0]
-            y = grid.Points[i][1]
-            t = grid.Points[i][2]
+        for i, p in enumerate(grid.get_independent_points()):
+            x = p[0]
+            y = p[1]
+            t = p[2]
 
             if t != Point.CROSS:  # normal point
                 # TODO: clean up
@@ -100,10 +99,10 @@ class F:
         # grid.get_points()
         for i in range(grid.ind_num):
             for e in range(-grid.borders["Dirichlet"] - grid.borders["Neumann"], -grid.borders["Dirichlet"]):
-                e1 = int(grid.Edges[e][0])
-                e2 = int(grid.Edges[e][1])
-                p1 = grid.Points[int(e1)][0:2]
-                p2 = grid.Points[int(e2)][0:2]
+                e1 = grid.Edges[e][0]
+                e2 = grid.Edges[e][1]
+                p1 = grid.Points[e1][:2]
+                p2 = grid.Points[e2][:2]
                 x = (p1 + p2) * 0.5
                 if i == e1 or i == e2:
                     F[i] += (grid.longTriangleSide * 0.5) * FN(*x)

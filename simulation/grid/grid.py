@@ -63,4 +63,28 @@ class Grid:
         return self.get_points(dirichlet=False, neumann=True, contact=True, inside=True)
 
     def get_points(self, *, dirichlet: bool, neumann: bool, contact: bool, inside: bool):
-        return
+        if inside:
+            start = 0
+        elif contact:
+            start = len(self.Points) \
+                    - self.borders["Dirichlet"] \
+                    - self.borders["Neumann"] \
+                    - self.borders["Contact"]
+        elif neumann:
+            start = len(self.Points) \
+                    - self.borders["Dirichlet"] \
+                    - self.borders["Neumann"]
+        elif dirichlet:
+            start = len(self.Points) \
+                    - self.borders["Dirichlet"]
+        else:
+            start = len(self.Points)
+
+        if not dirichlet:
+            stop = len(self.Points) \
+                   - self.borders["Dirichlet"] \
+                   - 1
+        else:
+            stop = len(self.Points)
+
+        return self.Points[start: stop]

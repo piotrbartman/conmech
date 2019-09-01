@@ -5,7 +5,7 @@ Created at 21.08.2019
 """
 
 from simulation.simulation_runner import SimulationRunner
-from examples.example_1 import Setup
+from examples.usa.only_dphi import Setup
 
 
 def test():
