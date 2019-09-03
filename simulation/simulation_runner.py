@@ -26,13 +26,7 @@ class SimulationRunner:
                                      top=setup.grid_top_border,
                                      right=setup.grid_right_border,
                                      bottom=setup.grid_bottom_border)
-        solver = SolverFactory.construct(grid=grid,
-                                         F0=setup.f,
-                                         FN=setup.g,
-                                         alpha=setup.alpha,
-                                         regular_dphi=setup.regular_dphi,
-                                         b=setup.b,
-                                         rho=setup.rho)
+        solver = SolverFactory.construct(grid=grid, setup=setup)
 
         print(f"Done after {(time.perf_counter() - t)} s")
         print("Solving...")

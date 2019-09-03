@@ -12,7 +12,7 @@ import numba
 
 class Solver:
 
-    def __init__(self, grid, F0, FN, alpha, regular_dphi, b, rho):
+    def __init__(self, grid, alpha, regular_dphi, b, rho):
 
         self.grid = grid
 
@@ -21,10 +21,14 @@ class Solver:
         self.b = b
         self.rho = rho
 
-        self.u = np.empty(self.grid.ind_num)
+        self.u = None
+        self.ub = None
 
         self.B = None
+        self.Bu = None
         self.F = None
+
+        self.precision_coefficient = 1e8
 
     def solve(self, verbose=True):
         u_vector = np.zeros(self.grid.ind_num)
@@ -43,10 +47,12 @@ class Solver:
                 if verbose:
                     print(f"Quality = {quality_inv**-1} is too low, trying again...")
 
+        self.u += self.ub
+
     # TODO cleanup
     @staticmethod
     @numba.jit()
-    def numba_JZu(ind_num, Edges, Points, u, alpha, BorderEdgesD, BorderEdgesN, BorderEdgesC):
+    def numba_JZu(ind_num, Edges, Points, u, BorderEdgesD, BorderEdgesN, BorderEdgesC, regular_dphi, b, rho):
         result = np.zeros(ind_num)
 
         for i in range(ind_num):
@@ -61,16 +67,14 @@ class Solver:
                     p2 = Points[e2][:2]
 
                     L = _distance(p1, p2)
-                    x1 = (p1[0] + p2[0]) * 0.5
-                    # TODO
-                    result[i] += L * 0.5 * regular_dphi(umL, 3., 0.001)
+                    result[i] += L * 0.5 * regular_dphi(umL, b, rho)
 
-        result *= alpha
         return result
 
     def JZu(self):
-        JZu = Solver.numba_JZu(self.grid.ind_num, self.grid.Edges, self.grid.Points, self.u, self.alpha,
-                               self.grid.borders["Dirichlet"], self.grid.borders["Neumann"], self.grid.borders["Contact"])
+        JZu = Solver.numba_JZu(self.grid.ind_num, self.grid.Edges, self.grid.Points, self.u,
+                               self.grid.borders["Dirichlet"], self.grid.borders["Neumann"], self.grid.borders["Contact"],
+                               self.regular_dphi, self.b, self.rho)
         return JZu
 
     # TODO cleanup
@@ -88,10 +92,12 @@ class Solver:
         self.u = u_vector
 
         X = self.Bu1() \
-            + self.JZu() \
+            + self.Bu[:self.grid.ind_num] \
             - self.F.F
+            # Solver.numba_Bu1(self.B, self.ub) \
+            # + self.alpha * self.JZu() \
 
-        return 1e8 * X
+        return self.precision_coefficient * X
 
 
 @numba.njit()
@@ -106,11 +112,4 @@ def _u_at_middle(e1, e2, ind_num, u):
         result += u[e1] * 0.5
     if e2 < ind_num:
         result += u[e2] * 0.5
-    return result
-
-
-@numba.jit()
-def regular_dphi(r, b, rho):
-    x = r - b
-    result = x / np.sqrt(x**2 + rho**2)
     return result

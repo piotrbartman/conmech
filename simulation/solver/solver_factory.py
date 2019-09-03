@@ -14,13 +14,20 @@ from simulation.solver.solver import Solver
 
 class SolverFactory:
     @staticmethod
-    def construct(grid, F0, FN, alpha, regular_dphi, b, rho):
-        solver = Solver(grid, F0, FN, alpha, regular_dphi, b, rho)
+    def construct(grid, setup):
+        solver = Solver(grid, setup.alpha, setup.regular_dphi, setup.b, setup.rho)
+
+        solver.u = np.empty(grid.ind_num)
 
         B = SolverFactory.construct_B(grid)
         solver.B = B[(1, 1)] + B[(2, 2)]
 
-        solver.F = F(grid, F0, FN)
+        solver.F = F(grid, setup.F0, setup.FN)
+
+        solver.ub = np.empty(grid.ind_num)
+        for i in range(grid.ind_num):
+            p = grid.Points[i]
+            solver.ub[i] = setup.ub(p[0], p[1], setup.b)
 
         return solver
 
@@ -55,7 +62,7 @@ class SolverFactory:
             for j in range(grid.ind_num):
                 edge = grid.get_edge(i, j)
 
-                if edge[0] >= 0:  # edge was found
+                if edge is not None:  # edge was found
                     c1i, c1j, c2i, c2j = Edge.c(edge)
                     W[i][j] = AK[i][c1i] * AL[j][c1j] + AK[i][c2i] * AL[j][c2j]
                     W[j][i] = AL[i][c1i] * AK[j][c1j] + AL[i][c2i] * AK[j][c2j]

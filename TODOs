@@ -1,6 +1,6 @@
+# TODO alpha == infinity
+# TODO finite difference method
 # TODO GammaD on GammaC
     # not constant gamma
 # TODO better edges representation
-# TODO Solve eq with b != 0 and alpha == infinity
-# TODO finite difference method
 # TODO time dependence

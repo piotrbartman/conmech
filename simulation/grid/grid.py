@@ -6,6 +6,7 @@ Created at 22.08.2019
 """
 
 import numpy as np
+from simulation.grid.edge import Edge
 
 
 class Grid:
@@ -51,7 +52,7 @@ class Grid:
 
     # TODO: order of args still matters
     def get_edge(self, i, j):
-        result = (-1, -1, -1)
+        result = None
         for k in range(len(self.edges[i])):
             if self.edges[i, k, 0] == j:
                 result = (i, j, self.edges[i, k, 1])

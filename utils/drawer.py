@@ -15,8 +15,8 @@ class Drawer:
     def draw(solver, setup):
         grid = solver.grid
         txt = 'CROSS EQUATION GR' + str(grid.SizeH) + ' ' + str(grid.SizeL) \
-              + ') f[' + str(setup.f) \
-              + '] g[' + str(setup.g) + ']'
+              + ') F0[' + str(setup.F0) \
+              + '] FN[' + str(setup.FN) + ']'
 
         plt.close()
         pylab.axes().set_aspect('equal', 'box')
