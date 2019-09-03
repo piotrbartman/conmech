@@ -1,5 +1,3 @@
-# TODO rename "grid" for "mesh"
-# TODO finite difference method
 # TODO better edges representation
 # TODO compare u alpha and u infinitive
     # TODO norm
@@ -11,3 +9,4 @@
 # TODO time dependence
 # TODO look & compare with Jureczka's solver
 # TODO f as element of Setup?
+# TODO finite difference method

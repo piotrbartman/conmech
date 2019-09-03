@@ -5,7 +5,6 @@ Created at 21.08.2019
 """
 
 import numpy as np
-from simulation.simulation_runner import SimulationRunner
 from simulation.mesh.mesh import Mesh
 from simulation.mesh.mesh_factory import MeshFactory
 from simulation.solver.solver_factory import SolverFactory
@@ -20,9 +19,9 @@ class Setup:
     grid_left_border = Mesh.DIRICHLET
     grid_top_border = Mesh.DIRICHLET
     grid_right_border = Mesh.DIRICHLET
-    grid_bottom_border = Mesh.DIRICHLET
+    grid_bottom_border = Mesh.CONTACT
 
-    alpha = 0
+    alpha = 18
 
     b = 3
     rho = 1e-3
@@ -54,7 +53,7 @@ class Setup:
         return result
 
 
-if __name__ == '__main__':
+def u_infinity():
     setup = Setup()
     mesh = MeshFactory.construct(setup.cells_number[0],
                                  setup.cells_number[1],
@@ -62,7 +61,7 @@ if __name__ == '__main__':
                                  left=setup.grid_left_border,
                                  top=setup.grid_top_border,
                                  right=setup.grid_right_border,
-                                 bottom=Mesh.CONTACT)  # !!!
+                                 bottom=setup.grid_bottom_border)
     B = SolverFactory.construct_B(mesh)
     B = B[(1, 1)] + B[(2, 2)]
     ub = np.empty(mesh.ind_num)
@@ -77,11 +76,32 @@ if __name__ == '__main__':
                                  left=setup.grid_left_border,
                                  top=setup.grid_top_border,
                                  right=setup.grid_right_border,
+                                 bottom=Mesh.DIRICHLET)  # !!!
+    solver = SolverFactory.construct(mesh=mesh, setup=setup)
+    solver.condition = lambda: Bu[:mesh.ind_num]
+
+    solver.solve(verbose=True)
+    solver.u += solver.ub
+
+    Drawer.draw(solver, setup)
+
+
+def u_alpha():
+    setup = Setup()
+    mesh = MeshFactory.construct(setup.cells_number[0],
+                                 setup.cells_number[1],
+                                 setup.gridHeight,
+                                 left=setup.grid_left_border,
+                                 top=setup.grid_top_border,
+                                 right=setup.grid_right_border,
                                  bottom=setup.grid_bottom_border)
     solver = SolverFactory.construct(mesh=mesh, setup=setup)
-    solver.Bu = Bu[:mesh.ind_num]
 
     solver.solve(verbose=True)
 
-    # TODO draw "Contact" border as b
     Drawer.draw(solver, setup)
+
+
+if __name__ == '__main__':
+    u_alpha()
+    u_infinity()

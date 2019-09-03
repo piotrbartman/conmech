@@ -45,9 +45,7 @@ class Solver:
                 break
             else:
                 if verbose:
-                    print(f"Quality = {quality_inv**-1} is too low, trying again...")
-
-        self.u += self.ub
+                    print(f"Quality = {quality_inv ** -1} is too low, trying again...")
 
     # TODO cleanup
     @staticmethod
@@ -88,15 +86,15 @@ class Solver:
         result = Solver.numba_Bu1(self.B, self.u)
         return result
 
+    def condition(self):
+        return self.alpha * self.JZu()
+
     def f(self, u_vector):
         self.u = u_vector
 
         X = self.Bu1() \
-            + + self.Bu \
+            + self.condition() \
             - self.F.F
-            # + self.Bu \
-            # Solver.numba_Bu1(self.B, self.ub) \
-            # + self.alpha * self.JZu() \
 
         return self.precision_coefficient * X
 
