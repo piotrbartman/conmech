@@ -1,6 +1,13 @@
-# TODO alpha == infinity
+# TODO rename "grid" for "mesh"
 # TODO finite difference method
-# TODO GammaD on GammaC
-    # not constant gamma
 # TODO better edges representation
+# TODO compare u alpha and u infinitive
+    # TODO norm
+        # TODO virtual square mesh
+    # TODO set end point of previous simulation as start point
+    # TODO set some non-trivial g <= 0, f >= 0
+    # TODO fixed one outstanding point problem
+    # TODO draw correctly borders
 # TODO time dependence
+# TODO look & compare with Jureczka's solver
+# TODO f as element of Setup?

@@ -12,9 +12,9 @@ import numba
 
 class Solver:
 
-    def __init__(self, grid, alpha, regular_dphi, b, rho):
+    def __init__(self, mesh, alpha, regular_dphi, b, rho):
 
-        self.grid = grid
+        self.mesh = mesh
 
         self.alpha = alpha
         self.regular_dphi = regular_dphi
@@ -31,7 +31,7 @@ class Solver:
         self.precision_coefficient = 1e8
 
     def solve(self, verbose=True):
-        u_vector = np.zeros(self.grid.ind_num)
+        u_vector = np.zeros(self.mesh.ind_num)
 
         while True:
             u_vector = scipy.optimize.fsolve(self.f, u_vector)
@@ -72,8 +72,8 @@ class Solver:
         return result
 
     def JZu(self):
-        JZu = Solver.numba_JZu(self.grid.ind_num, self.grid.Edges, self.grid.Points, self.u,
-                               self.grid.borders["Dirichlet"], self.grid.borders["Neumann"], self.grid.borders["Contact"],
+        JZu = Solver.numba_JZu(self.mesh.ind_num, self.mesh.Edges, self.mesh.Points, self.u,
+                               self.mesh.borders["Dirichlet"], self.mesh.borders["Neumann"], self.mesh.borders["Contact"],
                                self.regular_dphi, self.b, self.rho)
         return JZu
 
@@ -92,8 +92,9 @@ class Solver:
         self.u = u_vector
 
         X = self.Bu1() \
-            + self.Bu[:self.grid.ind_num] \
+            + + self.Bu \
             - self.F.F
+            # + self.Bu \
             # Solver.numba_Bu1(self.B, self.ub) \
             # + self.alpha * self.JZu() \
 

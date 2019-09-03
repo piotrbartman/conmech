@@ -6,10 +6,10 @@ Created at 22.08.2019
 """
 
 import numpy as np
-from simulation.grid.edge import Edge
+from simulation.mesh.edge import Edge
 
 
-class Grid:
+class Mesh:
     DIRICHLET = "Dirichlet"
     NEUMANN = "Neumann"
     CONTACT = "Contact"

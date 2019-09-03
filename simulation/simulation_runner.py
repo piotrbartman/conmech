@@ -5,7 +5,7 @@ Created at 21.08.2019
 @author: Piotr Bartman
 """
 
-from simulation.grid.grid_factory import GridFactory
+from simulation.mesh.mesh_factory import MeshFactory
 from utils.drawer import Drawer
 from simulation.solver.solver_factory import SolverFactory
 import time
@@ -18,15 +18,15 @@ class SimulationRunner:
         t0 = time.perf_counter()
         t = time.perf_counter()
 
-        # Create grid and solver
-        grid = GridFactory.construct(setup.cells_number[0],
+        # Create mesh and solver
+        mesh = MeshFactory.construct(setup.cells_number[0],
                                      setup.cells_number[1],
                                      setup.gridHeight,
                                      left=setup.grid_left_border,
                                      top=setup.grid_top_border,
                                      right=setup.grid_right_border,
                                      bottom=setup.grid_bottom_border)
-        solver = SolverFactory.construct(grid=grid, setup=setup)
+        solver = SolverFactory.construct(mesh=mesh, setup=setup)
 
         print(f"Done after {(time.perf_counter() - t)} s")
         print("Solving...")

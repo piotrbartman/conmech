@@ -6,21 +6,21 @@ Created at 21.08.2019
 """
 
 import numpy as np
-from simulation.grid.point import Point
+from simulation.mesh.point import Point
 
 
 class F:
-    def __init__(self, grid, F0, FN):
-        self.F = F.construct_f_vector(grid, F0, FN)
+    def __init__(self, mesh, F0, FN):
+        self.F = F.construct_f_vector(mesh, F0, FN)
 
     @staticmethod
-    def construct_f_vector(grid, F0, FN):
-        half_long_triangle_side = grid.halfLongTriangleSide
-        half_short_triangle_side = grid.halfShortTriangleSide
+    def construct_f_vector(mesh, F0, FN):
+        half_long_triangle_side = mesh.halfLongTriangleSide
+        half_short_triangle_side = mesh.halfShortTriangleSide
 
-        F = np.zeros(grid.ind_num)
+        F = np.zeros(mesh.ind_num)
 
-        for i, p in enumerate(grid.get_independent_points()):
+        for i, p in enumerate(mesh.get_independent_points()):
             x = p[0]
             y = p[1]
             t = p[2]
@@ -71,7 +71,7 @@ class F:
                 for idx in idxs:
                     F[i] += values_in_triangle[idx]
 
-                F[i] = (float(grid.TriangleArea) / 6) * F[i]
+                F[i] = (float(mesh.TriangleArea) / 6) * F[i]
 
             else:  # cross point
 
@@ -94,17 +94,17 @@ class F:
                 F[i] += values_in_triangle[2]
                 F[i] += values_in_triangle[3]
 
-                F[i] = (float(grid.TriangleArea) / 6) * F[i]
+                F[i] = (float(mesh.TriangleArea) / 6) * F[i]
 
-        # grid.get_points()
-        for i in range(grid.ind_num):
-            for e in range(-grid.borders["Dirichlet"] - grid.borders["Neumann"], -grid.borders["Dirichlet"]):
-                e1 = grid.Edges[e][0]
-                e2 = grid.Edges[e][1]
-                p1 = grid.Points[e1][:2]
-                p2 = grid.Points[e2][:2]
+        # mesh.get_points()
+        for i in range(mesh.ind_num):
+            for e in range(-mesh.borders["Dirichlet"] - mesh.borders["Neumann"], -mesh.borders["Dirichlet"]):
+                e1 = mesh.Edges[e][0]
+                e2 = mesh.Edges[e][1]
+                p1 = mesh.Points[e1][:2]
+                p2 = mesh.Points[e2][:2]
                 x = (p1 + p2) * 0.5
                 if i == e1 or i == e2:
-                    F[i] += (grid.longTriangleSide * 0.5) * FN(*x)
+                    F[i] += (mesh.longTriangleSide * 0.5) * FN(*x)
 
         return F

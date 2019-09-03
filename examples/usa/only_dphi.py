@@ -6,8 +6,8 @@ Created at 21.08.2019
 
 import numpy as np
 from simulation.simulation_runner import SimulationRunner
-from simulation.grid.grid import Grid
-from simulation.grid.grid_factory import GridFactory
+from simulation.mesh.mesh import Mesh
+from simulation.mesh.mesh_factory import MeshFactory
 from simulation.solver.solver_factory import SolverFactory
 from simulation.solver.solver import Solver
 from utils.drawer import Drawer
@@ -17,12 +17,12 @@ import numba
 class Setup:
     gridHeight = 1
     cells_number = (20, 20)  # number of triangles per aside
-    grid_left_border = Grid.DIRICHLET
-    grid_top_border = Grid.DIRICHLET
-    grid_right_border = Grid.DIRICHLET
-    grid_bottom_border = Grid.DIRICHLET
+    grid_left_border = Mesh.DIRICHLET
+    grid_top_border = Mesh.DIRICHLET
+    grid_right_border = Mesh.DIRICHLET
+    grid_bottom_border = Mesh.DIRICHLET
 
-    alpha = 15
+    alpha = 0
 
     b = 3
     rho = 1e-3
@@ -56,31 +56,30 @@ class Setup:
 
 if __name__ == '__main__':
     setup = Setup()
-    grid = GridFactory.construct(setup.cells_number[0],
+    mesh = MeshFactory.construct(setup.cells_number[0],
                                  setup.cells_number[1],
                                  setup.gridHeight,
                                  left=setup.grid_left_border,
                                  top=setup.grid_top_border,
                                  right=setup.grid_right_border,
-                                 bottom=Grid.CONTACT)
-    B = SolverFactory.construct_B(grid)
+                                 bottom=Mesh.CONTACT)  # !!!
+    B = SolverFactory.construct_B(mesh)
     B = B[(1, 1)] + B[(2, 2)]
-    ub = np.empty(grid.ind_num)
-    for i in range(grid.ind_num):
-        p = grid.Points[i]
+    ub = np.empty(mesh.ind_num)
+    for i in range(mesh.ind_num):
+        p = mesh.Points[i]
         ub[i] = setup.ub(p[0], p[1], setup.b)
     Bu = Solver.numba_Bu1(B, ub)
 
-    grid = GridFactory.construct(setup.cells_number[0],
+    mesh = MeshFactory.construct(setup.cells_number[0],
                                  setup.cells_number[1],
                                  setup.gridHeight,
                                  left=setup.grid_left_border,
                                  top=setup.grid_top_border,
                                  right=setup.grid_right_border,
                                  bottom=setup.grid_bottom_border)
-    solver = SolverFactory.construct(grid=grid, setup=setup)
-    print(Bu[:grid.ind_num])
-    solver.Bu = Bu
+    solver = SolverFactory.construct(mesh=mesh, setup=setup)
+    solver.Bu = Bu[:mesh.ind_num]
 
     solver.solve(verbose=True)
 
