@@ -15,13 +15,13 @@ import numba
 
 class Setup:
     gridHeight = 1
-    cells_number = (20, 20)  # number of triangles per aside
+    cells_number = (4, 4)  # number of triangles per aside
     grid_left_border = Mesh.DIRICHLET
     grid_top_border = Mesh.DIRICHLET
     grid_right_border = Mesh.DIRICHLET
     grid_bottom_border = Mesh.CONTACT
 
-    alpha = 18
+    alpha = 8
 
     b = 3
     rho = 1e-3

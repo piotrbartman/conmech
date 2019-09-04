@@ -50,6 +50,7 @@ class Edge:
             c2i = 3
             c2j = 0
         else:
+            print("ups")
             c1i = -1
             c1j = -1
             c2i = -1

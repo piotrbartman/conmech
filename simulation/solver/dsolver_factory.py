@@ -1,13 +1,13 @@
 """
-Created at 29.08.2019
+Created at 04.09.2019
 
-@author: Michał Jureczka
 @author: Piotr Bartman
 """
 
 import numpy as np
 from simulation.mesh.point import Point
 from simulation.mesh.edge import Edge
+from simulation.mesh.dmesh import DMesh
 from simulation.f import F
 from simulation.solver.solver import Solver
 
@@ -31,9 +31,9 @@ class SolverFactory:
         return solver
 
     @staticmethod
-    def construct_B(mesh):
-        AX = np.zeros((mesh.ind_num, 8))  # area with dx
-        AY = np.zeros((mesh.ind_num, 8))  # area with dy
+    def construct_B(mesh: DMesh):
+        AX = np.zeros((mesh.ind_num, 16))  # area with dx
+        AY = np.zeros((mesh.ind_num, 16))  # area with dy
 
         for i, p in enumerate(mesh.get_independent_points()):
             AX[i], AY[i] = Point.gradients(p)

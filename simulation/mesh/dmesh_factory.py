@@ -27,6 +27,8 @@ class DMeshFactory:
 
         mesh.ind_num = DMeshFactory.calculate_independent_number(mesh.x_shape, mesh.y_shape, mesh.borders)
 
+        return mesh
+
     @staticmethod
     def calculate_independent_number(x, y, borders):
         dirichlet = DBorders.DIRICHLET
@@ -42,7 +44,13 @@ class DMeshFactory:
         result += 1 if borders.left != dirichlet and borders.bottom != dirichlet else 0
         result += 1 if borders.right != dirichlet and borders.top != dirichlet else 0
         result += 1 if borders.right != dirichlet and borders.bottom != dirichlet else 0
-        
+
         return result
+
+    # TODO adapter
+    @staticmethod
+    def construct(sizeH, sizeL, height, left, top, right, bottom):
+        lenght = height / sizeH * sizeL
+        return DMeshFactory.mesh((sizeL, sizeH), (lenght, height), left, top, right, bottom)
 
 
