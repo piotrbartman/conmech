@@ -12,7 +12,7 @@ import numpy as np
 
 class Drawer:
     @staticmethod
-    def draw(solver, setup):
+    def draw(solver, setup, fixed_contact=False):
         mesh = solver.mesh
         txt = 'CROSS EQUATION GR' + str(mesh.SizeH) + ' ' + str(mesh.SizeL) \
               + ') F0[' + str(setup.F0) \
@@ -58,9 +58,13 @@ class Drawer:
             i -= 1
 
             # ------------
-        u = np.concatenate((solver.u, np.zeros(solver.mesh.borders["Dirichlet"] + 1)))
+        fixed_u = np.zeros(solver.mesh.borders["Dirichlet"] + mesh.dirichlet_closure)
+        if fixed_contact:
+            fixed_u = np.concatenate((np.full(solver.mesh.borders["Contact"] - 1, solver.b), fixed_u))
+        u = np.concatenate((solver.u, fixed_u))
         plt.scatter(mesh.Points[:, 0], mesh.Points[:, 1], marker='o', c=u, cmap="Reds")
 
+        plt.clim(0, solver.b)
         plt.colorbar()
 
         # i = len(mesh.Edges) - 1

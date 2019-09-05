@@ -36,10 +36,8 @@ class Mesh:
         self.shortTriangleSide = 0
         self.halfShortTriangleSide = 0
         self.TriangleArea = 0
-
-    @property
-    def ind_num(self):
-        return len(self.Points) - self.borders["Dirichlet"] - 1
+        self.ind_num = 0
+        self.dirichlet_closure = 0
 
     def getPoint(self, x, y):
         i = 0

@@ -21,7 +21,7 @@ class Setup:
     grid_right_border = Mesh.DIRICHLET
     grid_bottom_border = Mesh.CONTACT
 
-    alpha = 18
+    alpha = 5
 
     b = 3
     rho = 1e-3
@@ -70,20 +70,21 @@ def u_infinity():
         ub[i] = setup.ub(p[0], p[1], setup.b)
     Bu = Solver.numba_Bu1(B, ub)
 
-    mesh = MeshFactory.construct(setup.cells_number[0],
-                                 setup.cells_number[1],
-                                 setup.gridHeight,
-                                 left=setup.grid_left_border,
-                                 top=setup.grid_top_border,
-                                 right=setup.grid_right_border,
-                                 bottom=Mesh.DIRICHLET)  # !!!
-    solver = SolverFactory.construct(mesh=mesh, setup=setup)
-    solver.condition = lambda: Bu[:mesh.ind_num]
+    mesh_special = MeshFactory.construct(setup.cells_number[0],
+                                         setup.cells_number[1],
+                                         setup.gridHeight,
+                                         left=setup.grid_left_border,
+                                         top=setup.grid_top_border,
+                                         right=setup.grid_right_border,
+                                         bottom=Mesh.DIRICHLET)  # !!!
+    solver = SolverFactory.construct(mesh=mesh_special, setup=setup)
+    solver.condition = lambda: Bu[:mesh_special.ind_num]
 
     solver.solve(verbose=True)
     solver.u += solver.ub
 
-    Drawer.draw(solver, setup)
+    solver.mesh = mesh
+    Drawer.draw(solver, setup, fixed_contact=True)
 
 
 def u_alpha():
