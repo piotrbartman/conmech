@@ -58,7 +58,7 @@ class Setup:
         return result
 
 
-def u_infinity(setup):
+def u_infinity(setup, path=None):
     mesh = MeshFactory.construct(setup.cells_number[0],
                                  setup.cells_number[1],
                                  setup.gridHeight,
@@ -88,11 +88,10 @@ def u_infinity(setup):
     solver.u += solver.ub
 
     solver.mesh = mesh
-    path = str(Path(__file__).parent.absolute()) + "/results"
     Drawer.draw(solver, setup, path=path, fixed_contact=True)
 
 
-def u_alpha(setup, alphas=None, quality=None):
+def u_alpha(setup, alphas=None, quality=None, path=None):
     mesh = MeshFactory.construct(setup.cells_number[0],
                                  setup.cells_number[1],
                                  setup.gridHeight,
@@ -114,7 +113,6 @@ def u_alpha(setup, alphas=None, quality=None):
 
         solver.solve(start_vector=start_vector, quality=quality[i], verbose=True)
 
-        path = str(Path(__file__).parent.absolute()) + "/results"
         Drawer.draw(solver, setup, path=path)
         start_vector = solver.u
 
@@ -124,5 +122,6 @@ if __name__ == '__main__':
     sim_length = 10
     sim_alphas = [2 ** (i + 0) for i in range(sim_length)]
     sim_quality = [max(8 ** (sim_length/2 - i/2), 1) for i in range(sim_length)]
-    u_alpha(setup, alphas=sim_alphas, quality=sim_quality)
+    sim_path = str(Path(__file__).parent.absolute()) + "/results"
+    u_alpha(setup, alphas=sim_alphas, quality=sim_quality, path=sim_path)
     u_infinity(setup)
