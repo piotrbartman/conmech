@@ -2,10 +2,10 @@
 # TODO compare u alpha and u infinitive
     # TODO norm
         # TODO PENDING virtual square mesh
+            # TODO not continuous Dirichlet border
     # TODO set some non-trivial g <= 0, f >= 0
 # TODO time dependence
 # TODO look & compare with Jureczka's solver
 # TODO LOW f as element of Setup?
 # TODO finite difference method
 # TODO LOW select quality and alpha to reduce waving on the contact border
-# TODO RUNNING not continuous Dirichlet border
