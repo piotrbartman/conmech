@@ -12,11 +12,10 @@ import numpy as np
 
 class Drawer:
     @staticmethod
-    def draw(solver, setup, fixed_contact=False):
+    def draw(solver, setup, path=None, fixed_contact=False, verbose=True):
         mesh = solver.mesh
-        txt = 'CROSS EQUATION GR' + str(mesh.SizeH) + ' ' + str(mesh.SizeL) \
-              + ') F0[' + str(setup.F0) \
-              + '] FN[' + str(setup.FN) + ']'
+        title = f"Mesh[{mesh.SizeH}, {mesh.SizeL}] b[{setup.b}]"
+        title += f" alpha[{setup.alpha}]" if not fixed_contact else ""
 
         plt.close()
         pylab.axes().set_aspect('equal', 'box')
@@ -62,7 +61,7 @@ class Drawer:
         if fixed_contact:
             fixed_u = np.concatenate((np.full(solver.mesh.borders["Contact"] - 1, solver.b), fixed_u))
         u = np.concatenate((solver.u, fixed_u))
-        plt.scatter(mesh.Points[:, 0], mesh.Points[:, 1], marker='o', c=u, cmap="Reds")
+        plt.scatter(mesh.Points[:, 0], mesh.Points[:, 1], marker='o', s=64, c=u, cmap="Reds")
 
         plt.clim(0, solver.b)
         plt.colorbar()
@@ -102,7 +101,10 @@ class Drawer:
 
             # ------------
 
-        # plt.savefig(txt + '.png', transparent=True, bbox_inches='tight', pad_inches=0, dpi=300)  # DPI 500
-        # print(txt + '.png')
+        if path is not None:
+            plot_path = path + "/" + title + '.png'
+            plt.savefig(plot_path, transparent=False, bbox_inches='tight', pad_inches=0, dpi=300)
+            if verbose:
+                print("Save fig. in " + plot_path)
         plt.show()
         plt.close()

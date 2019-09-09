@@ -1,12 +1,10 @@
-# TODO better edges representation
+# TODO PENDING better edges representation
 # TODO compare u alpha and u infinitive
     # TODO norm
-        # TODO virtual square mesh
-    # TODO set end point of previous simulation as start point
+        # TODO PENDING virtual square mesh
+    # DONE set end point of previous simulation as start point
     # TODO set some non-trivial g <= 0, f >= 0
-    # DONE fixed one outstanding point problem
-    # DONE draw correctly borders
-    # TODO plot legend [0, b]
+    # TODO RUNNING waving on the border
 # TODO time dependence
 # TODO look & compare with Jureczka's solver
 # TODO f as element of Setup?
