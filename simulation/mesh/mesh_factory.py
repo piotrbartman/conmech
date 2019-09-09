@@ -87,6 +87,18 @@ class MeshFactory:
                 b = mesh.getPoint(i * mesh.longTriangleSide, j * mesh.longTriangleSide)
                 MeshFactory.addEdge(mesh, a, b, Edge.TOP)
 
+        dirichlet_closure = 0
+        if left == "Dirichlet" and top != "Dirichlet":
+            dirichlet_closure += 1
+        if top == "Dirichlet" and right != "Dirichlet":
+            dirichlet_closure += 1
+        if right == "Dirichlet" and bottom != "Dirichlet":
+            dirichlet_closure += 1
+        if bottom == "Dirichlet" and left != "Dirichlet":
+            dirichlet_closure += 1
+        mesh.ind_num = len(mesh.Points) - mesh.borders["Dirichlet"] - dirichlet_closure
+        mesh.dirichlet_closure = dirichlet_closure
+
         max_edges = 4
         mesh.edges = np.zeros((np.max(mesh.Edges) + 1, max_edges, 2), dtype=np.int)
         mesh.edges -= 1

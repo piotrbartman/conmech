@@ -1,11 +1,12 @@
+# TODO PENDING better edges representation
 # TODO compare u alpha and u infinitive
     # TODO norm
-        # TODO virtual square mesh
-             # better edges representation
-    # TODO set end point of previous simulation as start point
+        # TODO PENDING virtual square mesh
+            # TODO not continuous Dirichlet border
     # TODO set some non-trivial g <= 0, f >= 0
-    # TODO fixed one outstanding point problem
-    # TODO draw correctly borders
 # TODO time dependence
 # TODO look & compare with Jureczka's solver
+# TODO LOW f as element of Setup?
 # TODO finite difference method
+# TODO LOW select quality and alpha to reduce waving on the contact border
+# TODO LOW create path when save figs

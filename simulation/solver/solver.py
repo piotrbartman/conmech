@@ -30,18 +30,23 @@ class Solver:
 
         self.precision_coefficient = 1e8
 
-    def solve(self, verbose=True):
-        u_vector = np.zeros(self.mesh.ind_num)
+    def solve(self, start_vector=None, verbose=True, quality=1):
+        u_vector_shape = (self.mesh.ind_num,)
+        if start_vector is None:
+            u_vector = np.zeros(u_vector_shape)
+        else:
+            assert start_vector.shape == u_vector_shape
+            u_vector = start_vector
 
         while True:
             u_vector = scipy.optimize.fsolve(self.f, u_vector)
             quality_inv = np.linalg.norm(self.f(u_vector))
-            if quality_inv < 1:
+            if quality_inv < quality ** -1:
                 if verbose:
                     if quality_inv == 0:
                         print("Found exact solution.")
                     else:
-                        print(f"Quality = {quality_inv ** -1} > 1.0 is acceptable.")
+                        print(f"Quality = {quality_inv ** -1} > {quality} is acceptable.")
                 break
             else:
                 if verbose:
