@@ -4,7 +4,7 @@
         # TODO PENDING virtual square mesh
             # TODO not continuous Dirichlet border
     # TODO set some non-trivial g <= 0, f >= 0
-# TODO time dependence
+# RUNNING time dependence
 # TODO look & compare with Jureczka's solver
 # TODO LOW f as element of Setup?
 # TODO finite difference method

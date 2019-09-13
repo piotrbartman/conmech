@@ -55,9 +55,15 @@ class F:
 
                 # TODO: ...
                 idxs = ()
+                if t == Point.LEFT_TOP_CORNER:  # TODO Point.LEFT_TOP_CORNER:
+                    idxs = (4, 5)
+                if t == Point.LEFT_SIDE:
+                    idxs = (2, 3, 4, 5)
+                if t == Point.LEFT_BOTTOM_CORNER:
+                    idxs = (2, 3)
                 if t == Point.TOP:
                     idxs = (4, 5, 6, 7)
-                if t == Point.LEFT_TOP_CORNER:
+                if t == Point.RIGHT_TOP_CORNER:  # TODO Point.LEFT_TOP_CORNER:
                     idxs = (6, 7)
                 if t == Point.RIGHT_SIDE:
                     idxs = (0, 1, 6, 7)

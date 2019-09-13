@@ -25,9 +25,9 @@ class Solver:
         self.ub = None
 
         self.B = None
-        self.Bu = None
         self.F = None
 
+        # TODO move to the setup
         self.precision_coefficient = 1e8
 
     def solve(self, start_vector=None, verbose=True, quality=1):

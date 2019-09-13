@@ -21,29 +21,47 @@ class Point:
     CROSS = 9
 
     @staticmethod
+    def is_inside(point):
+        return point[2] == Point.CROSS or point[2] == Point.NORMAL_MIDDLE
+
+    @staticmethod
     def gradients(point):
-        dx = np.array([1., 1., -1., -1., -1., -1., 1., 1.]) * 0.5  # normal dx
-        dy = np.array([-1., -1., -1., -1., 1., 1., 1., 1.]) * 0.5
-        
-        if point[2] == Point.TOP:
-            f = np.array([0, 0, 0, 0, 1, 1, 1, 1])
-        elif point[2] == Point.RIGHT_TOP_CORNER:
-            f = np.array([0, 0, 0, 0, 0, 0, 1, 1])
-        elif point[2] == Point.RIGHT_SIDE:
-            f = np.array([1, 1, 0, 0, 0, 0, 1, 1])
-        elif point[2] == Point.RIGHT_BOTTOM_CORNER:
-            f = np.array([1, 1, 0, 0, 0, 0, 0, 0])
-        elif point[2] == Point.BOTTOM:
-            f = np.array([1, 1, 1, 1, 0, 0, 0, 0])
-        elif point[2] == Point.NORMAL_MIDDLE:
-            f = np.array([1, 1, 1, 1, 1, 1, 1, 1])
-        elif point[2] == Point.CROSS:
-            f = np.array([1, 1, 1, 1, 0, 0, 0, 0])  # only 4 used
-            dx = np.array([1., 0., -1., 0., 0., 0., 0., 0.])  # cross dx
+        if point[2] == Point.CROSS:
+            dx = np.array([1., 0., -1., 0., 0., 0., 0., 0.])
             dy = np.array([0., -1., 0., 1., 0., 0., 0., 0.])
+        else:   # normal dx
+            dx = np.array([1., 1., -1., -1., -1., -1., 1., 1.]) * 0.5
+            dy = np.array([-1., -1., -1., -1., 1., 1., 1., 1.]) * 0.5
+        
+        f = Point.triangles(point)
+
+        result = (f * dx, f * dy)
+        return result
+
+    @staticmethod
+    def triangles(point):
+        if point[2] == Point.LEFT_BOTTOM_CORNER:
+            result = np.array([0, 0, 1, 1, 0, 0, 0, 0])
+        elif point[2] == Point.LEFT_SIDE:
+            result = np.array([0, 0, 1, 1, 1, 1, 0, 0])
+        elif point[2] == Point.LEFT_TOP_CORNER:
+            result = np.array([0, 0, 0, 0, 1, 1, 0, 0])
+        elif point[2] == Point.TOP:
+            result = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+        elif point[2] == Point.RIGHT_TOP_CORNER:
+            result = np.array([0, 0, 0, 0, 0, 0, 1, 1])
+        elif point[2] == Point.RIGHT_SIDE:
+            result = np.array([1, 1, 0, 0, 0, 0, 1, 1])
+        elif point[2] == Point.RIGHT_BOTTOM_CORNER:
+            result = np.array([1, 1, 0, 0, 0, 0, 0, 0])
+        elif point[2] == Point.BOTTOM:
+            result = np.array([1, 1, 1, 1, 0, 0, 0, 0])
+        elif point[2] == Point.NORMAL_MIDDLE:
+            result = np.array([1, 1, 1, 1, 1, 1, 1, 1])
+        elif point[2] == Point.CROSS:
+            result = np.array([1, 1, 1, 1, 0, 0, 0, 0])  # only 4 used
         else:
             raise ValueError
 
-        result = (f * dx, f * dy)
         return result
 

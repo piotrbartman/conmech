@@ -68,3 +68,25 @@ class SolverFactory:
                     W[j][i] = AL[i][c1i] * AK[j][c1j] + AL[i][c2i] * AK[j][c2j]
 
         return W
+
+    @staticmethod
+    def todo(mesh):
+        Q = np.zeros((mesh.ind_num, mesh.ind_num))
+
+        # TODO fix mesh.get_independent_points()
+        # for i, p in enumerate(mesh.get_independent_points()):
+        aside = 1  # mesh.shortTriangleSide
+        for i, p in enumerate(mesh.Points):
+            Q[i][i] = (1 / 12) * (aside ** 2) * Point.triangles(p).sum()
+
+            # c - contacting triangles numbers
+            for j in range(mesh.ind_num):
+                edge = mesh.get_edge(i, j)
+
+                if edge is not None:  # edge was found
+                    Q[i][j] = (1 / 12) * (aside ** 2)
+                    if not Point.is_inside(mesh.Points[i]) and not Point.is_inside(mesh.Points[j]):
+                        Q[i][j] /= 2
+                    Q[j][i] = Q[i][j]
+
+        return Q
