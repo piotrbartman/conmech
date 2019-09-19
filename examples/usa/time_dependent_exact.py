@@ -1,5 +1,5 @@
 """
-Created at 21.08.2019
+Created at 13.09.2019
 
 @author: Piotr Bartman
 """
@@ -39,7 +39,7 @@ class Setup:
         self.ub = lambda a, b, c: np.NaN
 
     @staticmethod
-    def F0(x1, x2):
+    def F0(x1, x2, t):
         if 0.1 < x1 < 0.9 and 0.1 < x2 < 0.9:
             result = 2000
         else:

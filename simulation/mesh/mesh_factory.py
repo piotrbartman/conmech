@@ -25,7 +25,7 @@ class MeshFactory:
         mesh.halfLongTriangleSide = mesh.longTriangleSide * 0.5
         mesh.shortTriangleSide = mesh.longTriangleSide * np.sqrt(2.) * 0.5
         mesh.halfShortTriangleSide = mesh.shortTriangleSide * 0.5
-        mesh.TriangleArea = (mesh.longTriangleSide * mesh.longTriangleSide) / 4.
+        mesh.TriangleArea = (mesh.longTriangleSide ** 2) / 4.
 
         MeshFactory.startBorder(mesh, 0, 0)
         for i in range(sizeH):

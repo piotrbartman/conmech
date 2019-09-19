@@ -73,20 +73,23 @@ class SolverFactory:
     def todo(mesh):
         Q = np.zeros((mesh.ind_num, mesh.ind_num))
 
-        # TODO fix mesh.get_independent_points()
-        # for i, p in enumerate(mesh.get_independent_points()):
         aside = 1  # mesh.shortTriangleSide
-        for i, p in enumerate(mesh.Points):
-            Q[i][i] = (1 / 12) * (aside ** 2) * Point.triangles(p).sum()
+        for i, p in enumerate(mesh.get_independent_points()):
+        # for i, p in enumerate(mesh.Points):
+            Q[i][i] = (1 / 12) * (aside ** 2) * Point.triangles(p).sum() * 1
+            if p[2] == Point.CROSS:
+                Q[i, i] *= 1
 
             # c - contacting triangles numbers
             for j in range(mesh.ind_num):
                 edge = mesh.get_edge(i, j)
 
                 if edge is not None:  # edge was found
-                    Q[i][j] = (1 / 12) * (aside ** 2)
+                    Q[i][j] = (1 / 12) * (aside ** 2) * 0.5
                     if not Point.is_inside(mesh.Points[i]) and not Point.is_inside(mesh.Points[j]):
                         Q[i][j] /= 2
+                    if mesh.Points[i][2] == Point.CROSS:
+                        Q[i, j] *= 1
                     Q[j][i] = Q[i][j]
 
         return Q

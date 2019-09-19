@@ -80,9 +80,13 @@ class Mesh:
             start = len(self.Points)
 
         if not dirichlet:
-            stop = len(self.Points) \
-                   - self.borders["Dirichlet"] \
-                   - 1
+            # TODO...
+            if self.borders["Dirichlet"] != 0:
+                stop = len(self.Points) \
+                       - self.borders["Dirichlet"] \
+                       - 1
+            else:
+                stop = len(self.Points)
         else:
             stop = len(self.Points)
 
