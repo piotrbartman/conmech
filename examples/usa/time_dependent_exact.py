@@ -40,17 +40,17 @@ class Setup:
 
     @staticmethod
     def F0(x1, x2, t):
-        if 0.1 < x1 < 0.9 and 0.1 < x2 < 0.9:
-            result = 2000
-        else:
-            result = 0
-        # result = 0.0
+        result = (- np.e ** -t) * ((x1**3)/3 - (x1**2)/2) - 1 * (2*x1 - 1)
         return result
 
     @staticmethod
-    def FN(x1, x2):
+    def FN(x1, x2, t):
         result = 0
         return result
+
+    
+def exact_solution(x1, x2, t):
+    return (np.e ** -t) * ((x1 ** 3) / 3 - (x1 ** 2) / 2)
 
 
 def u_alpha(setup, path=None):
@@ -63,7 +63,7 @@ def u_alpha(setup, path=None):
                                  bottom=setup.grid_bottom_border)
 
     start_vector = np.full(mesh.ind_num, setup.alpha_0)
-    solver = SolverFactory.construct(mesh=mesh, setup=setup)
+    solver = SolverFactory.construct(mesh=mesh, setup=setup, t=0)
     solver.u = start_vector
     time_steps = int((setup.time_stop - setup.time_start) // setup.time_step)
 

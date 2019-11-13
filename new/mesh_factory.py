@@ -16,18 +16,14 @@ class Regular2D:
     @staticmethod
     def construct(size: int, dx: int, left, top, right, bottom) -> Mesh:
 
-        n_size = size // dx
+        n_size = (size // dx) + 1
         dimension = 2
 
         point = Regular2D.create_point(dimension, n_size, dx)
         edge = Regular2D.edge(dimension, n_size)
         element = Regular2D.element(dimension, n_size)
 
-        subarea = {'border': {}}
-        subarea['border']['left'] = edge[0: n_size - 1]
-        subarea['border']['right'] = edge[(n_size - 1) ** 2: (n_size - 1) ** 2 + n_size - 1]
-        subarea['border']['bottom'] = edge[(n_size - 1) ** 2 + n_size: 2 * (n_size - 1) * n_size: n_size]
-        subarea['border']['top'] = edge[(n_size - 1) ** 2 + 2 * n_size - 1: 2 * (n_size - 1) * n_size: n_size]
+        subarea = Regular2D.border(edge, n_size, left, top, right, bottom)
 
         mesh = Mesh(point, edge, element, subarea)
 
@@ -131,5 +127,18 @@ class Regular2D:
         return element
 
     @staticmethod
-    def border(left, top, right, bottom):
-        pass  # TODO
+    def border(edge: Edge, n_size: int, left, top, right, bottom):
+        subarea = {'border': {}}
+        subarea['border']['left'] = edge[0: n_size - 1]
+        subarea['border']['right'] = edge[(n_size - 1) ** 2: (n_size - 1) ** 2 + n_size - 1]
+        subarea['border']['bottom'] = edge[(n_size - 1) * n_size: 2 * (n_size - 1) * n_size: n_size]
+        subarea['border']['top'] = edge[(n_size - 1) * n_size + n_size - 1: 2 * (n_size - 1) * n_size: n_size]
+        subarea['border'][DIRICHLET] = []
+        subarea['border'][NEUMANN] = []
+        subarea['border'][CONTACT] = []
+        subarea['border'][left].append(subarea['border']['left'])
+        subarea['border'][right].append(subarea['border']['right'])
+        subarea['border'][top].append(subarea['border']['top'])
+        subarea['border'][bottom].append(subarea['border']['bottom'])
+
+        return subarea

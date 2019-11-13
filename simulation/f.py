@@ -25,7 +25,7 @@ class F:
             y = p[1]
             p_type = p[2]
 
-            if p_type != Point.CROSS:  # normal point
+            if p_type != Point.CROSS:  # normal create_point
                 # TODO: ...
                 idxs = ()
                 if p_type == Point.LEFT_TOP_CORNER:
@@ -57,7 +57,7 @@ class F:
 
                 F[i] = (float(mesh.TriangleArea) / 6) * F[i]
 
-            else:  # cross point
+            else:  # cross create_point
 
                 idxs = (1, 3, 5, 7)
 
@@ -73,7 +73,7 @@ class F:
 
         # mesh.get_points()
         for i in range(mesh.ind_num):
-            for e in range(-mesh.borders["Dirichlet"] - mesh.borders["Neumann"], -mesh.borders["Dirichlet"]):
+            for e in range(- mesh.borders["Dirichlet"] - mesh.borders["Neumann"], - mesh.borders["Dirichlet"]):
                 e1 = mesh.Edges[e][0]
                 e2 = mesh.Edges[e][1]
                 p1 = mesh.Points[e1][:2]

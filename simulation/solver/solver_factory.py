@@ -14,7 +14,7 @@ from simulation.solver.solver import Solver
 
 class SolverFactory:
     @staticmethod
-    def construct(mesh, setup):
+    def construct(mesh, setup, t=None):
         solver = Solver(mesh, setup.alpha, setup.regular_dphi, setup.b, setup.rho)
 
         solver.u = np.empty(mesh.ind_num)
@@ -22,7 +22,7 @@ class SolverFactory:
         B = SolverFactory.construct_B(mesh)
         solver.B = B[(1, 1)] + B[(2, 2)]
 
-        solver.F = F(mesh, setup.F0, setup.FN)
+        solver.F = F(mesh, setup.F0, setup.FN, t)
 
         solver.ub = np.empty(mesh.ind_num)
         for i in range(mesh.ind_num):
