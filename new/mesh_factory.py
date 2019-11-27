@@ -14,13 +14,13 @@ from new.constants import *
 
 class Regular2D:
     @staticmethod
-    def construct(size: int, dx: int, left, top, right, bottom) -> Mesh:
+    def construct(size: int, dx, left, top, right, bottom) -> Mesh:
 
-        n_size = (size // dx) + 1
+        n_size = int(size / dx) + 1
         dimension = 2
 
         point = Regular2D.create_point(dimension, n_size, dx)
-        edge = Regular2D.edge(dimension, n_size)
+        edge = Regular2D.edge(dimension, n_size, dx, dx)
         element = Regular2D.element(dimension, n_size)
 
         subarea = Regular2D.border(edge, n_size, left, top, right, bottom)
@@ -63,7 +63,7 @@ class Regular2D:
         return point
 
     @staticmethod
-    def edge(dimension: int, n_size: int) -> Edge:
+    def edge(dimension: int, n_size: int, dx, dy) -> Edge:
 
         n_edges = 2 * (n_size - 1) * n_size + 4 * (n_size - 1) ** 2
         edge = Edge(dimension, n_edges)
@@ -73,27 +73,34 @@ class Regular2D:
             for i in range(n_size - 1):
                 edge[edge_i][0] = n_size * j + i
                 edge[edge_i][1] = n_size * j + (i + 1)
+                edge.length[edge_i] = dx
                 edge_i += 1
 
         for j in range(n_size - 1):
             for i in range(n_size):
                 edge[edge_i][0] = n_size * j + i
                 edge[edge_i][1] = n_size * (j + 1) + i
+                edge.length[edge_i] = dy
                 edge_i += 1
 
+        dl = 1/2 * (dx ** 2 + dy ** 2) ** 1/2
         for j in range(n_size - 1):
             for i in range(n_size - 1):
                 edge[edge_i][0] = n_size ** 2 + (n_size - 1) * j + i
                 edge[edge_i][1] = n_size * j + i
+                edge.length[edge_i] = dl
                 edge_i += 1
                 edge[edge_i][0] = n_size ** 2 + (n_size - 1) * j + i
                 edge[edge_i][1] = n_size * j + (i + 1)
+                edge.length[edge_i] = dl
                 edge_i += 1
                 edge[edge_i][0] = n_size ** 2 + (n_size - 1) * j + i
                 edge[edge_i][1] = n_size * (j + 1) + (i + 1)
+                edge.length[edge_i] = dl
                 edge_i += 1
                 edge[edge_i][0] = n_size ** 2 + (n_size - 1) * j + i
                 edge[edge_i][1] = n_size * (j + 1) + i
+                edge.length[edge_i] = dl
                 edge_i += 1
 
         return edge
@@ -110,18 +117,22 @@ class Regular2D:
                 element[element_i][0] = (n_size - 1) * j + i
                 element[element_i][1] = 2 * (n_size * (n_size - 1)) + j * (4 * (n_size - 1)) + 4 * i + 0
                 element[element_i][2] = 2 * (n_size * (n_size - 1)) + j * (4 * (n_size - 1)) + 4 * i + 1
+                element.type[element_i] = LEFT_TRIANGLE
                 element_i += 1
                 element[element_i][0] = n_size * j + n_size * (n_size - 1) + 1 + i
                 element[element_i][1] = 2 * (n_size * (n_size - 1)) + j * (4 * (n_size - 1)) + 4 * i + 1
                 element[element_i][2] = 2 * (n_size * (n_size - 1)) + j * (4 * (n_size - 1)) + 4 * i + 2
+                element.type[element_i] = UP_TRIANGLE
                 element_i += 1
                 element[element_i][0] = (n_size - 1) * j + n_size - 1 + i
                 element[element_i][1] = 2 * (n_size * (n_size - 1)) + j * (4 * (n_size - 1)) + 4 * i + 2
                 element[element_i][2] = 2 * (n_size * (n_size - 1)) + j * (4 * (n_size - 1)) + 4 * i + 3
+                element.type[element_i] = RIGHT_TRIANGLE
                 element_i += 1
                 element[element_i][0] = n_size * j + n_size * (n_size - 1) + i
                 element[element_i][1] = 2 * (n_size * (n_size - 1)) + j * (4 * (n_size - 1)) + 4 * i + 3
                 element[element_i][2] = 2 * (n_size * (n_size - 1)) + j * (4 * (n_size - 1)) + 4 * i + 0
+                element.type[element_i] = BOTTOM_TRIANGLE
                 element_i += 1
 
         return element
