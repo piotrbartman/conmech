@@ -45,9 +45,9 @@ class TestMesh:
         plt.scatter(mesh.point[:, 0], mesh.point[:, 1])
 
         for border in mesh.subarea['border'][DIRICHLET]:
-            for edge in border:
-                x1, y1 = mesh.point[int(edge[0])][0], mesh.point[int(edge[0])][1]
-                x2, y2 = mesh.point[int(edge[1])][0], mesh.point[int(edge[1])][1]
+            for edge_id in border:
+                x1, y1 = mesh.point[mesh.edge.points[edge_id][0]][0], mesh.point[mesh.edge.points[edge_id][0]][1]
+                x2, y2 = mesh.point[mesh.edge.points[edge_id][1]][0], mesh.point[mesh.edge.points[edge_id][1]][1]
                 plt.plot([x1, x2], [y1, y2], 'k-', lw=0.5)
         plt.show()
 

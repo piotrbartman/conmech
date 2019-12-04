@@ -140,10 +140,10 @@ class Regular2D:
     @staticmethod
     def border(point: Point, edge: Edge, n_size: int, left, top, right, bottom):
         subarea = {'border': {}}
-        subarea['border']['left'] = edge[0: n_size - 1]
-        subarea['border']['right'] = edge[(n_size - 1) ** 2: (n_size - 1) ** 2 + n_size - 1]
-        subarea['border']['bottom'] = edge[(n_size - 1) * n_size: 2 * (n_size - 1) * n_size: n_size]
-        subarea['border']['top'] = edge[(n_size - 1) * n_size + n_size - 1: 2 * (n_size - 1) * n_size: n_size]
+        subarea['border']['left'] = np.arange(0, n_size - 1)  # edge[0: n_size - 1]
+        subarea['border']['right'] = np.arange((n_size - 1) ** 2, (n_size - 1) ** 2 + n_size - 1)  # edge[(n_size - 1) ** 2: (n_size - 1) ** 2 + n_size - 1]
+        subarea['border']['bottom'] = np.arange((n_size - 1) * n_size, 2 * (n_size - 1) * n_size, n_size)  # edge[(n_size - 1) * n_size: 2 * (n_size - 1) * n_size: n_size]
+        subarea['border']['top'] = np.arange((n_size - 1) * n_size + n_size - 1, 2 * (n_size - 1) * n_size, n_size)  # edge[(n_size - 1) * n_size + n_size - 1: 2 * (n_size - 1) * n_size: n_size]
         subarea['border'][DIRICHLET] = []
         subarea['border'][NEUMANN] = []
         subarea['border'][CONTACT] = []
@@ -153,8 +153,8 @@ class Regular2D:
         subarea['border'][bottom].append(subarea['border']['bottom'])
 
         for border in subarea['border'][DIRICHLET]:
-            for e in border:
-                point.dirichlet[e[0]] = True
-                point.dirichlet[e[1]] = True
+            for edge_id in border:
+                point.dirichlet[edge.points[edge_id][0]] = True
+                point.dirichlet[edge.points[edge_id][1]] = True
 
         return subarea
