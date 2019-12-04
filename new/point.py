@@ -11,6 +11,7 @@ import numpy as np
 class Point:
     def __init__(self, dimension, n):
         self.coordinates = np.empty((n, dimension))
+        self.dirichlet = np.zeros(n, dtype=np.bool)
 
     def __getitem__(self, item):
         return self.coordinates[item]

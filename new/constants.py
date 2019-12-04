@@ -9,6 +9,7 @@ DIRICHLET = "dirichlet"
 NEUMANN = "neumann"
 CONTACT = "contact"
 INTERIOR = "interior"
+INDEPENDENT = "independent"
 
 LEFT_TRIANGLE = 0
 UP_TRIANGLE = 1

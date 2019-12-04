@@ -5,6 +5,7 @@ Created at 30.10.2019
 @author: Piotr Bartman
 """
 
+import numpy as np
 from new.point import Point
 from new.edge import Edge
 from new.element import Element
@@ -23,7 +24,7 @@ class Regular2D:
         edge = Regular2D.edge(dimension, n_size, dx, dx)
         element = Regular2D.element(dimension, n_size)
 
-        subarea = Regular2D.border(edge, n_size, left, top, right, bottom)
+        subarea = Regular2D.border(point, edge, n_size, left, top, right, bottom)
 
         mesh = Mesh(point, edge, element, subarea)
 
@@ -43,10 +44,10 @@ class Regular2D:
             for i in range(n_size):
                 point[point_i][0] = x
                 point[point_i][1] = y
-                x += dx
+                y += dy
                 point_i += 1
-            y += dy
-            x = 0
+            x += dx
+            y = 0
 
         x = .5 * dx
         y = .5 * dy
@@ -55,11 +56,10 @@ class Regular2D:
             for i in range(n_size - 1):
                 point[point_i][0] = x
                 point[point_i][1] = y
-                x += dx
+                y += dy
                 point_i += 1
-            y += dy
-            x = .5 * dx
-
+            x += dx
+            y = .5 * dy
         return point
 
     @staticmethod
@@ -138,7 +138,7 @@ class Regular2D:
         return element
 
     @staticmethod
-    def border(edge: Edge, n_size: int, left, top, right, bottom):
+    def border(point: Point, edge: Edge, n_size: int, left, top, right, bottom):
         subarea = {'border': {}}
         subarea['border']['left'] = edge[0: n_size - 1]
         subarea['border']['right'] = edge[(n_size - 1) ** 2: (n_size - 1) ** 2 + n_size - 1]
@@ -151,5 +151,10 @@ class Regular2D:
         subarea['border'][right].append(subarea['border']['right'])
         subarea['border'][top].append(subarea['border']['top'])
         subarea['border'][bottom].append(subarea['border']['bottom'])
+
+        for border in subarea['border'][DIRICHLET]:
+            for e in border:
+                point.dirichlet[e[0]] = True
+                point.dirichlet[e[1]] = True
 
         return subarea

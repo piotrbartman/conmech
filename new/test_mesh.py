@@ -39,7 +39,7 @@ class TestMesh:
         plt.show()
 
     def test_draw_border(self):
-        mesh = Regular2D.construct(6, 2, left=DIRICHLET, top=NEUMANN, right=DIRICHLET, bottom=DIRICHLET)
+        mesh = Regular2D.construct(6, 2, left=DIRICHLET, top=NEUMANN, right=NEUMANN, bottom=NEUMANN)
 
         pylab.axes().set_aspect('equal', 'box')
         plt.scatter(mesh.point[:, 0], mesh.point[:, 1])
