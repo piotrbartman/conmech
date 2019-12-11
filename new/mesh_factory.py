@@ -84,21 +84,22 @@ class Regular2D:
                 edge_i += 1
 
         dl = 1/2 * (dx ** 2 + dy ** 2) ** 1/2
+        n_grid_points = n_size ** 2
         for j in range(n_size - 1):
             for i in range(n_size - 1):
-                edge[edge_i][0] = n_size ** 2 + (n_size - 1) * j + i
+                edge[edge_i][0] = n_grid_points + (n_size - 1) * j + i
                 edge[edge_i][1] = n_size * j + i
                 edge.length[edge_i] = dl
                 edge_i += 1
-                edge[edge_i][0] = n_size ** 2 + (n_size - 1) * j + i
+                edge[edge_i][0] = n_grid_points + (n_size - 1) * j + i
                 edge[edge_i][1] = n_size * j + (i + 1)
                 edge.length[edge_i] = dl
                 edge_i += 1
-                edge[edge_i][0] = n_size ** 2 + (n_size - 1) * j + i
+                edge[edge_i][0] = n_grid_points + (n_size - 1) * j + i
                 edge[edge_i][1] = n_size * (j + 1) + (i + 1)
                 edge.length[edge_i] = dl
                 edge_i += 1
-                edge[edge_i][0] = n_size ** 2 + (n_size - 1) * j + i
+                edge[edge_i][0] = n_grid_points + (n_size - 1) * j + i
                 edge[edge_i][1] = n_size * (j + 1) + i
                 edge.length[edge_i] = dl
                 edge_i += 1

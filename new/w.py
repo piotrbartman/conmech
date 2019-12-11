@@ -107,7 +107,7 @@ def type_up(edges, points, element, w, efield):
     b_ok = not points.dirichlet[b]
 
     if a_ok and b_ok:
-        w_a_b = - (1 / edges.length[element[EDGE_0]]) ** 2 * efield
+        w_a_b = (1 / edges.length[element[EDGE_0]]) ** 2 * efield
         w[a, b] += w_a_b
         w[b, a] += w_a_b
 

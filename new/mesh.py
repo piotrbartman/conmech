@@ -13,6 +13,8 @@ import numpy as np
 
 
 class Mesh:
+
+    # TODO: rename point -> points etc.
     def __init__(self, point: Point, edge: Edge, element: Element,  subarea: dict):
         self.point = point
         self.edge = edge
