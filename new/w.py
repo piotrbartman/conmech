@@ -107,7 +107,7 @@ def type_up(edges, points, element, w, efield):
     b_ok = not points.dirichlet[b]
 
     if a_ok and b_ok:
-        w_a_b = (1 / edges.length[element[EDGE_0]]) ** 2 * efield
+        w_a_b = (1 / edges.length[element[EDGE_0]]) ** 2 * efield  # was -()   !!!!!!!!
         w[a, b] += w_a_b
         w[b, a] += w_a_b
 
@@ -126,8 +126,8 @@ def type_side(edges, points, element, w, efield):
 
     w_a_b = (1 / edges.length[element[EDGE_0]]) ** 2 * efield
     if a_ok and b_ok:
-        w[a, b] += w_a_b
-        w[b, a] += w_a_b
+        w[a, b] -= w_a_b
+        w[b, a] -= w_a_b
 
     w_a_a = w_a_b
     if a_ok: w[a, a] += w_a_a
