@@ -354,7 +354,7 @@ class SettingMesh:
         return slice(self.boundary_nodes_count)
     @property
     def independent_indices(self):
-        return slice(self.independent_nodes_count)
+        return slice(self.nodes_count)
     @property
     def free_indices(self):
         return slice(self.contact_nodes_count, self.independent_nodes_count)

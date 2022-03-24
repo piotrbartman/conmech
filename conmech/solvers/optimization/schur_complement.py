@@ -31,7 +31,7 @@ class SchurComplement(Optimization):
         )
 
         self.contact_ids = slice(0, mesh.contact_count)
-        self.free_ids = slice(mesh.contact_count, mesh.independent_nodes_count)
+        self.free_ids = slice(mesh.contact_count, mesh.node_count)
 
         # ADDED When working with velocity v, forces_contact depend on u
 
@@ -233,8 +233,7 @@ class Dynamic(Quasistatic):
         self.ACC = mesh.ACC
         self.C2T = mesh.C2T
         self.K = mesh.K
-        self.ind = mesh.independent_nodes_count
-        self.t_vector = np.zeros(self.ind)
+        self.t_vector = np.zeros(mesh.node_count)
         super().__init__(
             mesh,
             inner_forces,
@@ -245,9 +244,7 @@ class Dynamic(Quasistatic):
             friction_bound,
         )
 
-        T = (1 / self.time_step) * self.ACC[: self.ind, : self.ind] + self.K[
-            : self.ind, : self.ind
-        ]
+        T = (1 / self.time_step) * self.ACC + self.K
 
         (
             self._point_temperature,
@@ -311,7 +308,7 @@ class Dynamic(Quasistatic):
             self.C2T @ self.v_vector, dim=self.dim
         )
 
-        QBig += (1 / self.time_step) * self.ACC[: self.ind, : self.ind] @ self.t_vector
+        QBig += (1 / self.time_step) * self.ACC @ self.t_vector
         # QBig = self.inner_temperature.F[:, 0] + Q1 - C2Xv - C2Yv  # TODO #50
 
         Q_free = QBig[self.free_ids]

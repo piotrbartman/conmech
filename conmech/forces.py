@@ -16,7 +16,7 @@ class Forces:
         self.outer_forces = outer_forces
         self.mesh = mesh
 
-        self.F = np.zeros([self.mesh.independent_nodes_count, 2])
+        self.F = np.zeros([self.mesh.nodes_count, 2])
 
     @property
     def F_vector(self):
@@ -61,4 +61,4 @@ class Forces:
                 F[v0] += f_neumann
                 F[v1] += f_neumann
 
-        self.F = F[: self.mesh.independent_nodes_count, :]
+        self.F = F[:, :]

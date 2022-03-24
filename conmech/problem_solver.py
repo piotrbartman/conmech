@@ -195,7 +195,7 @@ class Static(ProblemSolver):
         """
         state = State(self.mesh)
         state.displacement = initial_displacement(
-            self.mesh.initial_nodes[:self.mesh.independent_nodes_count])
+            self.mesh.initial_nodes[:])
 
         solution = state.displacement.reshape(2, -1)
 
@@ -241,9 +241,9 @@ class Quasistatic(ProblemSolver):
 
         state = State(self.mesh)
         state.displacement[:] = initial_displacement(
-            self.mesh.initial_nodes[:self.mesh.independent_nodes_count])
+            self.mesh.initial_nodes[:])
         state.velocity[:] = initial_displacement(
-            self.mesh.initial_nodes[:self.mesh.independent_nodes_count])
+            self.mesh.initial_nodes[:])
 
         solution = state.velocity.reshape(2, -1)
 
@@ -294,9 +294,9 @@ class Dynamic(ProblemSolver):
 
         state = State(self.mesh)
         state.displacement[:] = initial_displacement(
-            self.mesh.initial_nodes[:self.mesh.independent_nodes_count])
+            self.mesh.initial_nodes[:])
         state.velocity[:] = initial_displacement(
-            self.mesh.initial_nodes[:self.mesh.independent_nodes_count])
+            self.mesh.initial_nodes[:])
 
         solution = state.velocity.reshape(2, -1)
 
@@ -349,11 +349,11 @@ class TDynamic(ProblemSolver):
 
         state = TemperatureState(self.mesh)
         state.displacement[:] = initial_displacement(
-            self.mesh.initial_nodes[:self.mesh.independent_nodes_count])
+            self.mesh.initial_nodes[:])
         state.velocity[:] = initial_displacement(
-            self.mesh.initial_nodes[:self.mesh.independent_nodes_count])
+            self.mesh.initial_nodes[:])
         state.temperature[:] = initial_temperature(
-            self.mesh.initial_nodes[:self.mesh.independent_nodes_count])
+            self.mesh.initial_nodes[:])
 
         solution = state.velocity.reshape(2, -1)
         solution_t = state.temperature

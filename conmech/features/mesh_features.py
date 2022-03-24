@@ -35,6 +35,8 @@ class MeshFeatures(SettingMatrices):
             unordered_nodes, unordered_elements, self.is_contact, self.is_dirichlet
         )
 
+        self.node_count = len(self.initial_nodes)
+
         self.independent_nodes_count = len(self.initial_nodes)
         for vertex in reversed(self.initial_nodes):
             if not self.is_dirichlet(vertex):

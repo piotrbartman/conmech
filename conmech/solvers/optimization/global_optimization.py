@@ -111,8 +111,7 @@ class Dynamic(Quasistatic):
         self.ACC = mesh.ACC
         self.K = mesh.K
         self.C2T = mesh.C2T
-        self.ind = mesh.independent_nodes_count
-        self.t_vector = np.zeros(self.ind)
+        self.t_vector = np.zeros(self.mesh.node_count)
         super().__init__(
             mesh,
             inner_forces,
@@ -123,9 +122,7 @@ class Dynamic(Quasistatic):
             friction_bound,
         )
 
-        self._point_temperature = (1 / self.time_step) * self.mesh.ACC[
-            : self.ind, : self.ind
-        ] + self.K[: self.ind, : self.ind]
+        self._point_temperature = (1 / self.time_step) * self.mesh.ACC + self.K
 
         self.Q = self.recalculate_temperature()
 
@@ -153,6 +150,6 @@ class Dynamic(Quasistatic):
     def recalculate_temperature(self):
         X = (-1) * nph.unstack_and_sum_columns(self.C2T @ self.v_vector, dim=self.dim)
 
-        X += (1 / self.time_step) * self.ACC[: self.ind, : self.ind] @ self.t_vector
+        X += (1 / self.time_step) * self.ACC @ self.t_vector
 
         return X
