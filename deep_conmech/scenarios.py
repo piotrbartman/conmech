@@ -1,6 +1,7 @@
-from typing import Any, Callable, Optional, Union
+from typing import Callable, Optional, Union
 
 import numpy as np
+
 from conmech.dataclass.body_properties import (
     DynamicBodyProperties,
     DynamicTemperatureBodyProperties,
@@ -10,9 +11,7 @@ from conmech.dataclass.obstacle_properties import ObstacleProperties
 from conmech.dataclass.schedule import Schedule
 from conmech.helpers import cmh
 from conmech.helpers.config import Config
-
-from deep_conmech.common.training_config import TrainingConfig, TrainingData
-from deep_conmech.graph.setting.setting_randomized import SettingRandomized
+from deep_conmech.common.training_data import TrainingData
 from deep_conmech.simulator.setting.setting_iterable import SettingIterable
 from deep_conmech.simulator.setting.setting_temperature import SettingTemperature
 from deep_conmech.simulator.solver import Solver
@@ -20,14 +19,14 @@ from deep_conmech.simulator.solver import Solver
 
 class Scenario:
     def __init__(
-        self,
-        id: str,
-        mesh_data: MeshData,
-        body_prop: DynamicBodyProperties,
-        obstacle_prop: ObstacleProperties,
-        schedule: Schedule,
-        forces_function: Union[Callable[..., np.ndarray], np.ndarray],
-        obstacles: Optional[np.ndarray],
+            self,
+            id: str,
+            mesh_data: MeshData,
+            body_prop: DynamicBodyProperties,
+            obstacle_prop: ObstacleProperties,
+            schedule: Schedule,
+            forces_function: Union[Callable[..., np.ndarray], np.ndarray],
+            obstacles: Optional[np.ndarray],
     ):
         self.id = id
         self.mesh_data = mesh_data
@@ -55,15 +54,15 @@ class Scenario:
         return cmh.get_tqdm(
             iterable=range(self.schedule.episode_steps),
             config=config,
-            desc=f"{desc} {self.id}",  # scale_{self.mesh_data.scale_x}",
+            desc=f"{desc} {self.id}",
         )
 
     def get_solve_function(self):
         return Solver.solve
 
     def get_setting(
-        self, normalize_by_rotation=True, randomize=False, create_in_subprocess: bool = False
-    ) -> SettingIterable:  # "SettingIterable":
+            self, normalize_by_rotation=True, randomize=False, create_in_subprocess: bool = False
+    ) -> SettingIterable:
         setting = SettingIterable(
             mesh_data=self.mesh_data,
             body_prop=self.body_prop,
@@ -90,15 +89,15 @@ class Scenario:
 
 class TemperatureScenario(Scenario):
     def __init__(
-        self,
-        id: str,
-        mesh_data: MeshData,
-        body_prop: DynamicTemperatureBodyProperties,
-        obstacle_prop: ObstacleProperties,
-        schedule: Schedule,
-        forces_function: Union[Callable, np.ndarray],
-        obstacles: Optional[np.ndarray],
-        heat_function: Union[Callable, np.ndarray],
+            self,
+            id: str,
+            mesh_data: MeshData,
+            body_prop: DynamicTemperatureBodyProperties,
+            obstacle_prop: ObstacleProperties,
+            schedule: Schedule,
+            forces_function: Union[Callable, np.ndarray],
+            obstacles: Optional[np.ndarray],
+            heat_function: Union[Callable, np.ndarray],
     ):
         super().__init__(
             id=id,
@@ -118,7 +117,7 @@ class TemperatureScenario(Scenario):
         return Solver.solve_with_temperature
 
     def get_setting(
-        self, normalize_by_rotation=True, randomize=False, create_in_subprocess: bool = False
+            self, normalize_by_rotation=True, randomize=False, create_in_subprocess: bool = False
     ) -> SettingTemperature:
         setting = SettingTemperature(
             mesh_data=self.mesh_data,
@@ -132,14 +131,11 @@ class TemperatureScenario(Scenario):
         return setting
 
 
-####################################
-
 default_schedule = Schedule(time_step=0.01, final_time=4.0)
 
 default_body_prop = DynamicBodyProperties(
     mu=4.0, lambda_=4.0, theta=4.0, zeta=4.0, mass_density=1.0
 )
-# body_prop = DynamicBodyProperties(mu=0.01, lambda_=0.01, theta=0.01, zeta=0.01, mass_density=0.01)
 default_obstacle_prop = ObstacleProperties(hardness=100.0, friction=5.0)
 
 default_C_coeff = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
@@ -167,8 +163,6 @@ def get_temp_body_prop(C_coeff, K_coeff):
     )
 
 
-####################################
-
 m_rectangle = "pygmsh_rectangle"
 m_spline = "pygmsh_spline"
 m_circle = "pygmsh_circle"
@@ -179,18 +173,13 @@ m_ball_3d = "meshzoo_ball_3d"
 m_polygon_3d = "pygmsh_polygon_3d"
 m_twist_3d = "pygmsh_twist_3d"
 
-####################################
-
 o_front = np.array([[[-1.0, 0.0]], [[2.0, 0.0]]])
 o_back = np.array([[[1.0, 0.0]], [[-2.0, 0.0]]])
 o_slope = np.array([[[-1.0, -2.0]], [[4.0, 0.0]]])
 o_side = np.array([[[0.0, 1.0]], [[0.0, -3.0]]])
 o_two = np.array([[[-1.0, -2.0], [-1.0, 0.0]], [[2.0, 1.0], [3.0, 0.0]]])
 
-
 o_3d = np.array([[[-1.0, -1.0, 1.0]], [[2.0, 0.0, 0.0]]])
-
-##################
 
 
 def f_fall(ip, mp, md, t):
@@ -238,9 +227,6 @@ def f_rotate_fast(ip, mp, md, t):
     return np.array([0.0, 0.0])
 
 
-####################################
-
-
 def f_push_3d(ip, mp, md, t):
     return np.array([1.0, 1.0, 1.0])
 
@@ -250,9 +236,6 @@ def f_rotate_3d(ip, mp, md, t):
         scale = ip[1] * ip[2]
         return scale * np.array([4.0, 0.0, 0.0])
     return np.array([0.0, 0.0, 0.0])
-
-
-####################################
 
 
 def circle_slope(mesh_density, scale, is_adaptive, final_time):
@@ -415,9 +398,6 @@ def polygon_two(mesh_density, scale, is_adaptive, final_time):
         forces_function=f_slide,
         obstacles=o_two,
     )
-
-
-#########################
 
 
 def get_data(**args):
