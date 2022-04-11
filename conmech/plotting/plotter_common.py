@@ -134,7 +134,6 @@ def plot_animation(
     settings_file = pkh.open_file_settings_read_pickle(all_settings_path)
     args = (fig, time_skip, index_skip, all_indices, settings_file, animation_tqdm)
     with settings_file:
-
         ani = animation.FuncAnimation(fig, animate, fargs=args, frames=plot_settings_count)
 
         ani.save(save_path, writer=None, fps=fps, dpi=DPI, savefig_kwargs=savefig_args)

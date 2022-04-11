@@ -1,5 +1,6 @@
 import numba
 import numpy as np
+
 from conmech.properties.mesh_properties import MeshProperties
 from deep_conmech.data.interpolation_helpers import interpolate_point_numba
 

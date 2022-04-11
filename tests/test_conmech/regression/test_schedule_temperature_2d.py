@@ -12,8 +12,8 @@ from conmech.state.obstacle import Obstacle
 
 def generate_test_suits():
     obstacle = Obstacle(np.array(
-            [[[0.7, 1.0]], [[0.0, 0.1]]]
-        ), scenarios.default_temp_obstacle_prop)
+        [[[0.7, 1.0]], [[0.0, 0.1]]]
+    ), scenarios.default_temp_obstacle_prop)
     scenario = TemperatureScenario(
         name=f"polygon_temp",
         mesh_data=MeshProperties(

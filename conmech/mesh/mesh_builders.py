@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import numpy as np
+
 from conmech.helpers import mph
 from conmech.mesh import mesh_builders_2d, mesh_builders_3d, mesh_builders_legacy
 from conmech.properties.mesh_properties import MeshProperties

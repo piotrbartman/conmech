@@ -3,6 +3,7 @@ from typing import Callable, Optional
 
 import numpy as np
 import scipy.optimize
+
 from conmech.helpers import nph
 from deep_conmech.graph.setting.setting_randomized import SettingRandomized
 from deep_conmech.simulator.setting.setting_obstacles import SettingObstacles

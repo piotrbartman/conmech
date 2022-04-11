@@ -5,11 +5,7 @@ import math
 import numpy as np
 
 from conmech.dynamics.statement import (
-    StaticDisplacementStatement,
-    QuasistaticVelocityStatement,
-    DynamicVelocityStatement,
-    TemperatureStatement,
-    Variables, DynamicVelocityWithTemperatureStatement,
+    Variables,
 )
 from conmech.helpers import nph
 from conmech.solvers._solvers import Solvers
@@ -105,8 +101,7 @@ class SchurComplement(Optimization):
         )
         if self.statement.dimension == 2:
             return point_forces.T, forces_free
-        else:
-            return point_forces.reshape(-1), forces_free.reshape(-1)
+        return point_forces.reshape(-1), forces_free.reshape(-1)
 
     def __str__(self):
         return "schur"
@@ -137,8 +132,7 @@ class SchurComplement(Optimization):
             _result = _result.reshape(1, -1)
             result = _result
             return result
-        else:
-            return initial_guess[self.contact_ids]
+        return initial_guess[self.contact_ids]
 
     def complement_free_points(self, truncated_solution: np.ndarray) -> np.ndarray:
         if self.statement.dimension == 2:
@@ -147,11 +141,11 @@ class SchurComplement(Optimization):
             _result = self.forces_free - _result
             result = self.free_x_free_inverted @ _result
             return result
-        else:
-            _result = self.free_x_contact @ truncated_solution
-            _result = self.forces_free - _result
-            result = self.free_x_free_inverted @ _result
-            return result
+
+        _result = self.free_x_contact @ truncated_solution
+        _result = self.forces_free - _result
+        result = self.free_x_free_inverted @ _result
+        return result
 
     def merge(self, solution_contact: np.ndarray, solution_free: np.ndarray) -> np.ndarray:
         if self.statement.dimension == 2:
@@ -161,45 +155,19 @@ class SchurComplement(Optimization):
             _result = _result.reshape(1, -1)
             result = np.squeeze(np.asarray(_result))
             return result
-        else:
-            _result = np.concatenate((solution_contact, solution_free))
-            result = np.squeeze(np.asarray(_result))
-            return result
+
+        _result = np.concatenate((solution_contact, solution_free))
+        result = np.squeeze(np.asarray(_result))
+        return result
 
 
 @Solvers.register("static", "schur", "schur complement", "schur complement method")
 class Static(SchurComplement):
-    def __init__(self, statement, mesh, body_prop, time_step, contact_law, friction_bound):
-        super().__init__(
-            statement,
-            mesh,
-            body_prop,
-            time_step,
-            contact_law,
-            friction_bound,
-        )
+    pass
 
 
 @Solvers.register("quasistatic", "schur", "schur complement", "schur complement method")
 class Quasistatic(SchurComplement):
-    def __init__(
-        self,
-        statement,
-        mesh,
-        body_prop,
-        time_step,
-        contact_law,
-        friction_bound,
-    ):
-        super().__init__(
-            statement,
-            mesh,
-            body_prop,
-            time_step,
-            contact_law,
-            friction_bound,
-        )
-
     def iterate(self, velocity):
         super().iterate(velocity)
         self.statement.update(Variables(displacement=self.u_vector))
@@ -208,33 +176,15 @@ class Quasistatic(SchurComplement):
 
 @Solvers.register("dynamic", "schur", "schur complement", "schur complement method")
 class Dynamic(SchurComplement):
-    def __init__(
-        self,
-        statement,
-        mesh,
-        body_prop,
-        time_step,
-        contact_law,
-        friction_bound,
-    ):
-        super().__init__(
-            statement,
-            mesh,
-            body_prop,
-            time_step,
-            contact_law,
-            friction_bound,
-        )
-
-        # TODO #50
-        # def inner_forces(x):
-        #     return 0.1 * (1.25 - abs(x - 1.25) + 0.5 - abs(y - 0.5))
-        #
-        # def outer_forces(x):
-        #     return 0
-        #
-        # self.inner_temperature = Forces(mesh, inner_forces, outer_forces)
-        # self.inner_temperature.setF()
+    # TODO #50
+    # def inner_forces(x):
+    #     return 0.1 * (1.25 - abs(x - 1.25) + 0.5 - abs(y - 0.5))
+    #
+    # def outer_forces(x):
+    #     return 0
+    #
+    # self.inner_temperature = Forces(mesh, inner_forces, outer_forces)
+    # self.inner_temperature.setF()
 
     # def solve(
     #     self,

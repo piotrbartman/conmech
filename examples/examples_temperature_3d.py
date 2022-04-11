@@ -112,7 +112,8 @@ def main(mesh_density=5, final_time=3, plot_animation=True):
     all_scenarios = []
     all_scenarios.extend(get_C_temp_scenarios(mesh_density, final_time))
     all_scenarios.extend(get_K_temp_scenarios(mesh_density, final_time))
-    obstacle = Obstacle(np.array([[[-1.0, 0.0, 1.0]], [[2.0, 0.0, 0.0]]]), default_temp_obstacle_prop)
+    obstacle = Obstacle(np.array([[[-1.0, 0.0, 1.0]], [[2.0, 0.0, 0.0]]]),
+                        default_temp_obstacle_prop)
     all_scenarios.extend(
         [
             TemperatureScenario(

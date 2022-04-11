@@ -4,18 +4,17 @@ import os
 
 import numpy as np
 import tensorflow.compat.v1 as tf
+
 from conmech.helpers import cmh, pkh
 from conmech.helpers.config import Config
 from conmech.properties.mesh_properties import MeshProperties
 from conmech.properties.schedule import Schedule
 from conmech.scenarios.scenarios import (M_POLYGON, Scenario,
                                          default_body_prop,
-                                         default_obstacle_prop, f_rotate,
-                                         o_side)
+                                         default_obstacle_prop, f_rotate)
 from conmech.simulations import simulation_runner
 from conmech.solvers.calculator import Calculator
 from conmech.state.obstacle import Obstacle
-
 from deep_conmech.helpers import dch
 from deep_conmech.training_config import TrainingConfig
 

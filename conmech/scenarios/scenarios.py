@@ -1,6 +1,7 @@
 from typing import Callable, Union
 
 import numpy as np
+
 from conmech.helpers import cmh
 from conmech.helpers.config import Config
 from conmech.properties.body_properties import (
