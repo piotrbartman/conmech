@@ -79,7 +79,7 @@ def main(show: bool = True, save: bool = False):
     setup = StaticSetup()
     runner = StaticProblemSolver(setup, "schur")
 
-    state = runner.solve(verbose=True, fixed_point_abs_tol=0.001,
+    state = runner.solve(verbose=True, fixed_point_abs_tol=0.000001,
                          initial_displacement=setup.initial_displacement)
     config = Config()
     Drawer(state=state, config=config).draw(show=show, save=save)
