@@ -29,7 +29,7 @@ class Statement:
         self.update_right_hand_side(var)
 
 
-class StaticStatement(Statement):
+class StaticDisplacementStatement(Statement):
     def update_left_hand_side(self, var: Variables):
         self.left_hand_side = self.dynamics.elasticity
 
@@ -37,7 +37,7 @@ class StaticStatement(Statement):
         self.right_hand_side = self.dynamics.forces.forces_vector
 
 
-class QuasistaticStatement(Statement):
+class QuasistaticVelocityStatement(Statement):
     def update_left_hand_side(self, var: Variables):
         self.left_hand_side = self.dynamics.viscosity
 
@@ -49,7 +49,7 @@ class QuasistaticStatement(Statement):
         )
 
 
-class DynamicStatement(Statement):
+class DynamicVelocityStatement(Statement):
     def update_left_hand_side(self, var):
         assert var.time_step is not None
 
@@ -61,15 +61,23 @@ class DynamicStatement(Statement):
         assert var.displacement is not None
         assert var.velocity is not None
         assert var.time_step is not None
-        assert var.temperature is not None
 
         A = -1 * self.dynamics.elasticity @ var.displacement
 
         A += (1 / var.time_step) * self.dynamics.acceleration_operator @ var.velocity
 
-        A += self.dynamics.thermal_expansion.T @ var.temperature
-
         self.right_hand_side = self.dynamics.forces.forces_vector + A
+
+
+class DynamicVelocityWithTemperatureStatement(DynamicVelocityStatement):
+    def update_right_hand_side(self, var):
+        super().update_right_hand_side(var)
+
+        assert var.temperature is not None
+
+        A = self.dynamics.thermal_expansion.T @ var.temperature
+
+        self.right_hand_side += A
 
 
 class TemperatureStatement(Statement):
@@ -81,6 +89,30 @@ class TemperatureStatement(Statement):
         self.left_hand_side = (1 / var.time_step) * self.dynamics.acceleration_operator[
             :ind, :ind
         ] + self.dynamics.thermal_conductivity[:ind, :ind]
+
+    def update_right_hand_side(self, var):
+        assert var.velocity is not None
+        assert var.time_step is not None
+        assert var.temperature is not None
+
+        rhs = (-1) * self.dynamics.thermal_expansion @ var.velocity
+
+        ind = self.dynamics.independent_nodes_count
+
+        rhs += (
+            (1 / var.time_step) * self.dynamics.acceleration_operator[:ind, :ind] @ var.temperature
+        )
+        self.right_hand_side = rhs
+        # self.right_hand_side = self.inner_temperature.F[:, 0] + Q1 - C2Xv - C2Yv  # TODO #50
+
+
+class PiezoelectricStatement(Statement):
+    def update_left_hand_side(self, var):
+        assert var.time_step is not None
+
+        ind = self.dynamics.independent_nodes_count
+
+        self.left_hand_side = self.dynamics.permittivity[:ind, :ind]
 
     def update_right_hand_side(self, var):
         assert var.velocity is not None
