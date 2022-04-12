@@ -170,7 +170,7 @@ class Static(SchurComplement):
 class Quasistatic(SchurComplement):
     def iterate(self, velocity):
         super().iterate(velocity)
-        self.statement.update(Variables(displacement=self.u_vector))
+        self.statement.update(self.var)
         self._point_forces, self.forces_free = self.recalculate_forces()
 
 
@@ -213,12 +213,5 @@ class Dynamic(SchurComplement):
 
     def iterate(self, velocity):
         super().iterate(velocity)
-        self.statement.update(
-            Variables(
-                displacement=self.u_vector,
-                velocity=self.v_vector,
-                temperature=self.t_vector,
-                time_step=self.var.time_step,
-            )
-        )
+        self.statement.update(self.var)
         self._point_forces, self.forces_free = self.recalculate_forces()

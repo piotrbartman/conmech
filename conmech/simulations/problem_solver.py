@@ -140,11 +140,17 @@ class ProblemSolver:
             raise ValueError(f"Unknown problem class: {self.setup.__class__}")
 
         if isinstance(self.setup, DynamicProblem) and hasattr(self.setup.contact_law, "h_temp"):
+            variables2 = Variables(
+                displacement=np.zeros(2 * self.mesh.independent_nodes_count),
+                velocity=np.zeros(2 * self.mesh.independent_nodes_count),
+                temperature=np.zeros(self.mesh.independent_nodes_count),
+                time_step=self.setup.time_step,
+            )
             self.second_step_solver = solver_class(
                 TemperatureStatement(self.mesh),
                 self.mesh,
                 body_prop,
-                variables,
+                variables2,
                 self.setup.contact_law,
                 self.setup.friction_bound,
             )
@@ -204,6 +210,7 @@ class ProblemSolver:
         self.step_solver.iterate(solution)
         if self.second_step_solver is not None:
             self.second_step_solver.iterate(solution)
+
         quality = validator.check_quality(state, solution, quality)
         self.print_iteration_info(quality, validator.error_tolerance, verbose)
         return solution
@@ -226,8 +233,11 @@ class ProblemSolver:
                 velocity=solution,
             )
             solution_t = self.second_step_solver.solve(solution_t, velocity=solution)
-            self.step_solver.t_vector = solution_t
-            self.second_step_solver.t_vector = solution_t
+            # self.step_solver.t_vector = solution_t
+            # self.second_step_solver.t_vector = solution_t
+
+            self.step_solver.var.temperature[:] = solution_t
+            self.second_step_solver.var.temperature[:] = solution_t
             norm = (
                 np.linalg.norm(solution - old_solution) ** 2
                 + np.linalg.norm(old_solution_t - solution_t) ** 2

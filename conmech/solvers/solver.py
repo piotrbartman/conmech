@@ -28,24 +28,23 @@ class Solver:
         self.v_vector = np.zeros(self.mesh.independent_nodes_count * 2)
         self.t_vector = np.zeros(self.mesh.independent_nodes_count)
         self.var = variables
+        self.var.displacement = self.u_vector
+        self.var.velocity = self.v_vector
+        self.var.temperature = self.t_vector
 
         self.elasticity = mesh.elasticity
 
-        self.statement.update(
-            Variables(
-                displacement=self.u_vector,
-                velocity=self.v_vector,
-                temperature=self.t_vector,
-                time_step=self.var.time_step,
-            )
-        )
+        self.statement.update(self.var)
 
     def __str__(self):
         raise NotImplementedError()
 
     def iterate(self, velocity):
-        self.v_vector = velocity.reshape(-1)
-        self.u_vector = self.u_vector + self.var.time_step * self.v_vector
+        # self.v_vector = velocity.reshape(-1)
+        # self.u_vector = self.u_vector + self.var.time_step * self.v_vector
+
+        self.var.velocity = velocity.reshape(-1)
+        self.var.displacement = self.var.displacement + self.var.time_step * self.var.velocity
 
     def solve(self, initial_guess, *, velocity: np.ndarray, **kwargs):
         raise NotImplementedError()

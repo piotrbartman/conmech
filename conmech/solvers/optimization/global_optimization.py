@@ -31,18 +31,11 @@ class Static(Global):
 class Quasistatic(Global):
     def iterate(self, velocity):
         super().iterate(velocity)
-        self.statement.update(Variables(displacement=self.u_vector))
+        self.statement.update(self.var)
 
 
 @Solvers.register("dynamic", "global", "global optimization")
 class Dynamic(Global):
     def iterate(self, velocity):
         super().iterate(velocity)
-        self.statement.update(
-            Variables(
-                displacement=self.u_vector,
-                velocity=self.v_vector,
-                temperature=self.t_vector,
-                time_step=self.var.time_step,
-            )
-        )
+        self.statement.update(self.var)
