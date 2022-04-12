@@ -82,7 +82,7 @@ class PQuasistaticSetup(Quasistatic):
 
 def main(show: bool):
     setup = PQuasistaticSetup()
-    runner = PQuasistatic(setup, solving_method="piezo")
+    runner = PQuasistatic(setup, solving_method="schur")
 
     states = runner.solve(n_steps=32, output_step=range(0, 32, 4), verbose=True,
                           initial_displacement=setup.initial_displacement,
