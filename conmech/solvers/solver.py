@@ -3,7 +3,7 @@ Created at 18.02.2021
 """
 import numpy as np
 
-from conmech.dynamics.statement import Statement, Variables
+from conmech.dynamics.statement import Statement
 
 
 class Solver:

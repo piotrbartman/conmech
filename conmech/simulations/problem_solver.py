@@ -10,7 +10,9 @@ from conmech.dynamics.statement import (
     StaticDisplacementStatement,
     QuasistaticVelocityStatement,
     DynamicVelocityWithTemperatureStatement,
-    TemperatureStatement, Variables, DynamicVelocityStatement,
+    TemperatureStatement,
+    Variables,
+    DynamicVelocityStatement,
 )
 from conmech.properties.body_properties import (
     DynamicTemperatureBodyProperties,
@@ -25,7 +27,7 @@ from conmech.scenarios.problems import Static as StaticProblem
 from conmech.solvers import Solvers
 from conmech.solvers.solver import Solver
 from conmech.solvers.validator import Validator
-from conmech.state.state import State, TemperatureState, PiezoelectricState
+from conmech.state.state import State, TemperatureState
 
 
 class ProblemSolver:
@@ -549,7 +551,8 @@ class TDynamic(ProblemSolver):
 #
 #         # self.second_step_solver.var.displacement[:] = state.displacement.ravel().copy()
 #         # self.second_step_solver.var.velocity[:] = state.velocity.ravel().copy()
-#         # self.second_step_solver.var.electric_potential[:] = state.electric_potential.ravel().copy()
+#         # self.second_step_solver.var.electric_potential[:] = \
+#         # state.electric_potential.ravel().copy()
 #
 #         output_step = np.diff(output_step)
 #         results = []

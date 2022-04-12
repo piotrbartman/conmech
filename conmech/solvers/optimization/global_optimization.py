@@ -4,7 +4,6 @@ Created 22.02.2021
 
 import numpy as np
 
-from conmech.dynamics.statement import Variables
 from conmech.solvers._solvers import Solvers
 from conmech.solvers.optimization.optimization import Optimization
 

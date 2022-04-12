@@ -1,11 +1,18 @@
-from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
 
 
 class Variables:
-    def __init__(self, *, displacement=None, velocity=None, temperature=None, electric_potential=None, time_step=0):
+    def __init__(
+        self,
+        *,
+        displacement=None,
+        velocity=None,
+        temperature=None,
+        electric_potential=None,
+        time_step=0,
+    ):
         self.displacement: Optional[np.ndarray] = displacement
         self.velocity: Optional[np.ndarray] = velocity
         self.temperature: Optional[np.ndarray] = temperature
