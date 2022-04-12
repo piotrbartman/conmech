@@ -4,12 +4,13 @@ from typing import Optional
 import numpy as np
 
 
-@dataclass
 class Variables:
-    displacement: Optional[np.ndarray] = None
-    velocity: Optional[np.ndarray] = None
-    temperature: Optional[np.ndarray] = None
-    time_step: Optional[float] = None
+    def __init__(self, *, displacement=None, velocity=None, temperature=None, electric_potential=None, time_step=0):
+        self.displacement: Optional[np.ndarray] = displacement
+        self.velocity: Optional[np.ndarray] = velocity
+        self.temperature: Optional[np.ndarray] = temperature
+        self.electric_potential: Optional[np.ndarray] = electric_potential
+        self.time_step: float = time_step
 
 
 class Statement:
@@ -61,7 +62,7 @@ class DynamicVelocityStatement(Statement):
         super().__init__(dynamics, 2)
 
     def update_left_hand_side(self, var):
-        assert var.time_step is not None
+        assert var.time_step
 
         self.left_hand_side = (
             self.dynamics.viscosity + (1 / var.time_step) * self.dynamics.acceleration_operator
@@ -70,7 +71,7 @@ class DynamicVelocityStatement(Statement):
     def update_right_hand_side(self, var):
         assert var.displacement is not None
         assert var.velocity is not None
-        assert var.time_step is not None
+        assert var.time_step
 
         A = -1 * self.dynamics.elasticity @ var.displacement
 
@@ -95,7 +96,7 @@ class TemperatureStatement(Statement):
         super().__init__(dynamics, 1)
 
     def update_left_hand_side(self, var):
-        assert var.time_step is not None
+        assert var.time_step
 
         ind = self.dynamics.independent_nodes_count
 
@@ -105,8 +106,8 @@ class TemperatureStatement(Statement):
 
     def update_right_hand_side(self, var):
         assert var.velocity is not None
-        assert var.time_step is not None
         assert var.temperature is not None
+        assert var.time_step
 
         rhs = (-1) * self.dynamics.thermal_expansion @ var.velocity
 
@@ -124,15 +125,13 @@ class PiezoelectricStatement(Statement):
         super().__init__(dynamics, 1)
 
     def update_left_hand_side(self, var):
-        assert var.time_step is not None
-
         ind = self.dynamics.independent_nodes_count
 
         self.left_hand_side = self.dynamics.permittivity[:ind, :ind]
 
     def update_right_hand_side(self, var):
         assert var.velocity is not None
-        assert var.time_step is not None
+        assert var.time_step
         assert var.temperature is not None
 
         rhs = (-1) * self.dynamics.thermal_expansion @ var.velocity

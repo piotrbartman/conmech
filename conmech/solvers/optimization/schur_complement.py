@@ -18,7 +18,7 @@ class SchurComplement(Optimization):
         statement,
         mesh,
         body_prop,
-        time_step,
+        variables,
         contact_law,
         friction_bound,
     ):
@@ -26,7 +26,7 @@ class SchurComplement(Optimization):
             statement,
             mesh,
             body_prop,
-            time_step,
+            variables,
             contact_law,
             friction_bound,
         )
@@ -218,7 +218,7 @@ class Dynamic(SchurComplement):
                 displacement=self.u_vector,
                 velocity=self.v_vector,
                 temperature=self.t_vector,
-                time_step=self.time_step,
+                time_step=self.var.time_step,
             )
         )
         self._point_forces, self.forces_free = self.recalculate_forces()

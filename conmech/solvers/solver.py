@@ -12,7 +12,7 @@ class Solver:
         statement,
         mesh,
         body_prop,
-        time_step,
+        variables,
         contact_law,
         friction_bound,
     ):
@@ -23,11 +23,11 @@ class Solver:
         self.mesh = mesh
         self.statement: Statement = statement
 
-        self.time_step = time_step
         self.current_time = 0
         self.u_vector = np.zeros(self.mesh.independent_nodes_count * 2)
         self.v_vector = np.zeros(self.mesh.independent_nodes_count * 2)
         self.t_vector = np.zeros(self.mesh.independent_nodes_count)
+        self.var = variables
 
         self.elasticity = mesh.elasticity
 
@@ -36,7 +36,7 @@ class Solver:
                 displacement=self.u_vector,
                 velocity=self.v_vector,
                 temperature=self.t_vector,
-                time_step=self.time_step,
+                time_step=self.var.time_step,
             )
         )
 
@@ -45,7 +45,7 @@ class Solver:
 
     def iterate(self, velocity):
         self.v_vector = velocity.reshape(-1)
-        self.u_vector = self.u_vector + self.time_step * self.v_vector
+        self.u_vector = self.u_vector + self.var.time_step * self.v_vector
 
     def solve(self, initial_guess, *, velocity: np.ndarray, **kwargs):
         raise NotImplementedError()

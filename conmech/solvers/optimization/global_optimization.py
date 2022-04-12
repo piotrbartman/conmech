@@ -4,9 +4,7 @@ Created 22.02.2021
 
 import numpy as np
 
-from conmech.dynamics.statement import (
-    Variables,
-)
+from conmech.dynamics.statement import Variables
 from conmech.solvers._solvers import Solvers
 from conmech.solvers.optimization.optimization import Optimization
 
@@ -45,6 +43,6 @@ class Dynamic(Global):
                 displacement=self.u_vector,
                 velocity=self.v_vector,
                 temperature=self.t_vector,
-                time_step=self.time_step,
+                time_step=self.var.time_step,
             )
         )

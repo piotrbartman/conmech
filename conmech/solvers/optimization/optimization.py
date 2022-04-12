@@ -17,7 +17,7 @@ class Optimization(Solver):
         statement,
         mesh,
         body_prop,
-        time_step,
+        variables,
         contact_law,
         friction_bound,
     ):
@@ -25,7 +25,7 @@ class Optimization(Solver):
             statement,
             mesh,
             body_prop,
-            time_step,
+            variables,
             contact_law,
             friction_bound,
         )
