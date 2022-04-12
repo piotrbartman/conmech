@@ -140,7 +140,7 @@ class ProblemSolver:
             raise ValueError(f"Unknown problem class: {self.setup.__class__}")
 
         if isinstance(self.setup, DynamicProblem) and hasattr(self.setup.contact_law, "h_temp"):
-            variables2 = Variables(
+            variables2 = Variables(  # TODO: #77
                 displacement=np.zeros(2 * self.mesh.independent_nodes_count),
                 velocity=np.zeros(2 * self.mesh.independent_nodes_count),
                 temperature=np.zeros(self.mesh.independent_nodes_count),
@@ -233,9 +233,6 @@ class ProblemSolver:
                 velocity=solution,
             )
             solution_t = self.second_step_solver.solve(solution_t, velocity=solution)
-            # self.step_solver.t_vector = solution_t
-            # self.second_step_solver.t_vector = solution_t
-
             self.step_solver.var.temperature[:] = solution_t
             self.second_step_solver.var.temperature[:] = solution_t
             norm = (
