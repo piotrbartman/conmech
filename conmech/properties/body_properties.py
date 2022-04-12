@@ -38,5 +38,10 @@ class StaticTemperatureBodyProperties(StaticBodyProperties, TemperatureBodyPrope
 
 
 @dataclass
+class QuasistaticPiezoelectricBodyProperties(DynamicBodyProperties, PiezoelectricityBodyProperties):
+    pass
+
+
+@dataclass
 class DynamicTemperatureBodyProperties(DynamicBodyProperties, TemperatureBodyProperties):
     pass

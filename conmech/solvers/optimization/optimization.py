@@ -39,7 +39,7 @@ class Optimization(Solver):
             )
         else:
             self.loss = make_cost_functional_temperature(
-                h_functional=contact_law.h_temp,
+                h_functional=contact_law.h_temp if hasattr(contact_law, "h_temp") else contact_law.h_piezo,
                 hn=contact_law.h_nu,
                 ht=contact_law.h_tau,
             )

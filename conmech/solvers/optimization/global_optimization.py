@@ -28,13 +28,9 @@ class Static(Global):
 
 @Solvers.register("quasistatic", "global", "global optimization")
 class Quasistatic(Global):
-    def iterate(self, velocity):
-        super().iterate(velocity)
-        self.statement.update(self.var)
+    pass
 
 
 @Solvers.register("dynamic", "global", "global optimization")
 class Dynamic(Global):
-    def iterate(self, velocity):
-        super().iterate(velocity)
-        self.statement.update(self.var)
+    pass

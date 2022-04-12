@@ -36,6 +36,7 @@ class Solver:
     def iterate(self, velocity):
         self.var.velocity = velocity.reshape(-1)
         self.var.displacement = self.var.displacement + self.var.time_step * self.var.velocity
+        self.statement.update(self.var)
 
     def solve(self, initial_guess, *, velocity: np.ndarray, **kwargs):
         raise NotImplementedError()

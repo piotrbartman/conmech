@@ -12,10 +12,12 @@ from conmech.dynamics.statement import (
     DynamicVelocityWithTemperatureStatement,
     TemperatureStatement,
     Variables,
-    DynamicVelocityStatement,
+    DynamicVelocityStatement, PiezoelectricStatement,
+    QuasistaticVelocityWithPiezoelectricityStatement,
 )
 from conmech.properties.body_properties import (
     DynamicTemperatureBodyProperties,
+    QuasistaticPiezoelectricBodyProperties,
     StaticTemperatureBodyProperties,
 )
 from conmech.properties.mesh_properties import MeshProperties
@@ -27,7 +29,7 @@ from conmech.scenarios.problems import Static as StaticProblem
 from conmech.solvers import Solvers
 from conmech.solvers.solver import Solver
 from conmech.solvers.validator import Validator
-from conmech.state.state import State, TemperatureState
+from conmech.state.state import State, TemperatureState, PiezoelectricState
 
 
 class ProblemSolver:
@@ -37,30 +39,42 @@ class ProblemSolver:
         :param setup:
         :param solving_method: 'schur', 'optimization', 'direct'
         """
-        self.thermal_expansion = np.array([[0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]])
-        self.thermal_conductivity = np.array([[0.1, 0.0, 0.0], [0.0, 0.1, 0.0], [0.0, 0.0, 0.1]])
+        thermal_expansion = np.array([[0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]])
+        thermal_conductivity = np.array([[0.1, 0.0, 0.0], [0.0, 0.1, 0.0], [0.0, 0.0, 0.1]])
+        piezoelectricity = np.array([[0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]])
+        permittivity = np.array([[0.1, 0.0, 0.0], [0.0, 0.1, 0.0], [0.0, 0.0, 0.1]])
 
-        with_time = isinstance(setup, (QuasistaticProblem, DynamicProblem))
-        body_prop = (
-            DynamicTemperatureBodyProperties(
+        if isinstance(setup, StaticProblem):
+            self.body_prop = StaticTemperatureBodyProperties(
+                mass_density=1.0,
+                mu=setup.mu_coef,
+                lambda_=setup.la_coef,
+            )
+            time_step = 0
+        elif isinstance(setup, QuasistaticProblem):
+            self.body_prop = QuasistaticPiezoelectricBodyProperties(
                 mass_density=1.0,
                 mu=setup.mu_coef,
                 lambda_=setup.la_coef,
                 theta=setup.th_coef,
                 zeta=setup.ze_coef,
-                thermal_expansion=self.thermal_expansion,
-                thermal_conductivity=self.thermal_conductivity,
+                piezoelectricity=piezoelectricity,
+                permittivity=permittivity,
             )
-            if with_time
-            else StaticTemperatureBodyProperties(
+            time_step = setup.time_step
+        elif isinstance(setup, QuasistaticProblem):
+            self.body_prop = DynamicTemperatureBodyProperties(
                 mass_density=1.0,
                 mu=setup.mu_coef,
                 lambda_=setup.la_coef,
-                thermal_expansion=self.thermal_expansion,
-                thermal_conductivity=self.thermal_conductivity,
+                theta=setup.th_coef,
+                zeta=setup.ze_coef,
+                thermal_expansion=thermal_expansion,
+                thermal_conductivity=thermal_conductivity,
             )
-        )
-        time_step = setup.time_step if with_time else 0
+            time_step = setup.time_step
+        else:
+            raise ValueError()
 
         grid_width = (setup.grid_height / setup.elements_number[0]) * setup.elements_number[1]
 
@@ -72,7 +86,7 @@ class ProblemSolver:
             ),
             inner_forces=setup.inner_forces,
             outer_forces=setup.outer_forces,
-            body_prop=body_prop,
+            body_prop=self.body_prop,
             schedule=Schedule(time_step=time_step, final_time=0.0),
             normalize_by_rotation=False,
             is_dirichlet=setup.is_dirichlet,
@@ -102,13 +116,6 @@ class ProblemSolver:
                 displacement=np.empty(2 * self.mesh.independent_nodes_count),
                 velocity=np.zeros(2 * self.mesh.independent_nodes_count),  # TODO
             )
-            body_prop = StaticTemperatureBodyProperties(
-                mu=self.setup.mu_coef,
-                lambda_=self.setup.la_coef,
-                mass_density=1.0,
-                thermal_expansion=self.thermal_expansion,
-                thermal_conductivity=self.thermal_conductivity,
-            )
         elif isinstance(self.setup, (QuasistaticProblem, DynamicProblem)):
             variables = Variables(
                 displacement=np.zeros(2 * self.mesh.independent_nodes_count),
@@ -116,7 +123,15 @@ class ProblemSolver:
                 time_step=self.setup.time_step,
             )
 
-            if isinstance(self.setup, QuasistaticProblem):
+            if isinstance(self.setup, QuasistaticProblem) and hasattr(self.setup.contact_law, "h_piezo"):
+                statement = QuasistaticVelocityWithPiezoelectricityStatement(self.mesh)
+                variables = Variables(
+                    displacement=np.zeros(2 * self.mesh.independent_nodes_count),
+                    velocity=np.zeros(2 * self.mesh.independent_nodes_count),
+                    electric_potential=np.zeros(self.mesh.independent_nodes_count),
+                    time_step=self.setup.time_step,
+                )
+            elif isinstance(self.setup, QuasistaticProblem):
                 statement = QuasistaticVelocityStatement(self.mesh)
             elif hasattr(self.setup.contact_law, "h_temp"):
                 statement = DynamicVelocityWithTemperatureStatement(self.mesh)
@@ -128,16 +143,6 @@ class ProblemSolver:
                 )
             else:
                 statement = DynamicVelocityStatement(self.mesh)
-
-            body_prop = DynamicTemperatureBodyProperties(
-                mu=self.setup.mu_coef,
-                lambda_=self.setup.la_coef,
-                theta=self.setup.th_coef,
-                zeta=self.setup.ze_coef,
-                mass_density=1.0,
-                thermal_expansion=self.thermal_expansion,
-                thermal_conductivity=self.thermal_conductivity,
-            )
         else:
             raise ValueError(f"Unknown problem class: {self.setup.__class__}")
 
@@ -151,7 +156,22 @@ class ProblemSolver:
             self.second_step_solver = solver_class(
                 TemperatureStatement(self.mesh),
                 self.mesh,
-                body_prop,
+                self.body_prop,
+                variables2,
+                self.setup.contact_law,
+                self.setup.friction_bound,
+            )
+        elif isinstance(self.setup, QuasistaticProblem) and hasattr(self.setup.contact_law, "h_piezo"):
+            variables2 = Variables(  # TODO: #77
+                displacement=np.zeros(2 * self.mesh.independent_nodes_count),
+                velocity=np.zeros(2 * self.mesh.independent_nodes_count),
+                electric_potential=np.zeros(self.mesh.independent_nodes_count),
+                time_step=self.setup.time_step,
+            )
+            self.second_step_solver = solver_class(
+                PiezoelectricStatement(self.mesh),
+                self.mesh,
+                self.body_prop,
                 variables2,
                 self.setup.contact_law,
                 self.setup.friction_bound,
@@ -162,7 +182,7 @@ class ProblemSolver:
         self.step_solver = solver_class(
             statement,
             self.mesh,
-            body_prop,
+            self.body_prop,
             variables,
             self.setup.contact_law,
             self.setup.friction_bound,
@@ -235,8 +255,12 @@ class ProblemSolver:
                 velocity=solution,
             )
             solution_t = self.second_step_solver.solve(solution_t, velocity=solution)
-            self.step_solver.var.temperature[:] = solution_t
-            self.second_step_solver.var.temperature[:] = solution_t
+            if self.step_solver.var.temperature is not None:
+                self.step_solver.var.temperature[:] = solution_t
+                self.second_step_solver.var.temperature[:] = solution_t
+            if self.step_solver.var.electric_potential is not None:
+                self.step_solver.var.electric_potential[:] = solution_t
+                self.second_step_solver.var.electric_potential[:] = solution_t
             norm = (
                 np.linalg.norm(solution - old_solution) ** 2
                 + np.linalg.norm(old_solution_t - solution_t) ** 2
@@ -463,9 +487,9 @@ class TDynamic(ProblemSolver):
         self.step_solver.var.velocity[:] = state.velocity.ravel().copy()
         self.step_solver.var.temperature[:] = state.temperature.ravel().copy()
 
-        # self.second_step_solver.var.displacement[:] = state.displacement.ravel().copy()
-        # self.second_step_solver.var.velocity[:] = state.velocity.ravel().copy()
-        # self.second_step_solver.var.temperature[:] = state.temperature.ravel().copy()
+        self.second_step_solver.var.displacement[:] = state.displacement.ravel().copy()
+        self.second_step_solver.var.velocity[:] = state.velocity.ravel().copy()
+        self.second_step_solver.var.temperature[:] = state.temperature.ravel().copy()
 
         output_step = np.diff(output_step)
         results = []
@@ -492,91 +516,87 @@ class TDynamic(ProblemSolver):
         return results
 
 
-# class PQuasistatic(ProblemSolver):
-#     def __init__(self, setup, solving_method: str):
-#         """Solves general Contact Mechanics problem.
-#
-#         :param setup:
-#         :param solving_method: 'schur', 'optimization', 'direct'
-#         """
-#         super().__init__(setup, solving_method)
-#
-#         self.coordinates = "velocity"
-#         self.solving_method = solving_method
-#
-#     # super class method takes **kwargs, so signatures are consistent
-#     # pylint: disable=arguments-differ
-#     def solve(
-#         self,
-#         *,
-#         n_steps: int,
-#         initial_displacement: Callable,
-#         initial_velocity: Callable,
-#         initial_electric_potential: Callable,
-#         output_step: Optional[iter] = None,
-#         verbose: bool = False,
-#         **kwargs,
-#     ) -> List[PiezoelectricState]:
-#         """
-#         :param n_steps: number of time-step in simulation
-#         :param output_step: from which time-step we want to get copy of State,
-#                             default (n_steps-1,)
-#                             example: for Setup.time-step = 2, n_steps = 10,  output_step = (2, 6, 9)
-#                                      we get 3 shared copy of State for time-steps 4, 12 and 18
-#         :param initial_displacement: for the solver
-#         :param initial_velocity: for the solver
-#         :param initial_electric_potential: for the solver
-#         :param verbose: show prints
-#         :return: state
-#         """
-#         output_step = (0, *output_step) if output_step else (0, n_steps)  # 0 for diff
-#
-#         state = PiezoelectricState(self.mesh)
-#         state.displacement[:] = initial_displacement(
-#             self.mesh.initial_nodes[: self.mesh.independent_nodes_count]
-#         )
-#         state.velocity[:] = initial_velocity(
-#             self.mesh.initial_nodes[: self.mesh.independent_nodes_count]
-#         )
-#         state.electric_potential[:] = initial_electric_potential(
-#             self.mesh.initial_nodes[: self.mesh.independent_nodes_count]
-#         )
-#
-#         solution = state.velocity.reshape(2, -1)
-#         solution_p = state.electric_potential
-#
-#         self.step_solver.var.displacement[:] = state.displacement.ravel().copy()
-#         self.step_solver.var.velocity[:] = state.velocity.ravel().copy()
-#         self.step_solver.var.electric_potential[:] = state.electric_potential.ravel().copy()
-#
-#         # self.second_step_solver.var.displacement[:] = state.displacement.ravel().copy()
-#         # self.second_step_solver.var.velocity[:] = state.velocity.ravel().copy()
-#         # self.second_step_solver.var.electric_potential[:] = \
-#         # state.electric_potential.ravel().copy()
-#
-#         output_step = np.diff(output_step)
-#         results = []
-#         for n in output_step:
-#             for _ in range(n):
-#                 self.step_solver.current_time += self.step_solver.var.time_step
-#                 # self.second_step_solver.current_time += self.second_step_solver.var.time_step
-#
-#                 # solution = self.find_solution(self.step_solver, state, solution, self.validator,
-#                 #                               verbose=verbose)
-#                 solution, solution_t = self.find_solution_uzawa(
-#                     state, solution, solution_p, verbose=verbose
-#                 )
-#
-#                 if self.coordinates == "velocity":
-#                     state.set_velocity(
-#                         solution[:],
-#                         update_displacement=True,
-#                         time=self.step_solver.current_time,
-#                     )
-#                     state.set_temperature(solution_t)
-#                     # self.step_solver.iterate(solution)
-#                 else:
-#                     raise ValueError(f"Unknown coordinates: {self.coordinates}")
-#             results.append(state.copy())
-#
-#         return results
+class PQuasistatic(ProblemSolver):
+    def __init__(self, setup, solving_method: str):
+        """Solves general Contact Mechanics problem.
+
+        :param setup:
+        :param solving_method: 'schur', 'optimization', 'direct'
+        """
+        super().__init__(setup, solving_method)
+
+        self.coordinates = "velocity"
+        self.solving_method = solving_method
+
+    # super class method takes **kwargs, so signatures are consistent
+    # pylint: disable=arguments-differ
+    def solve(
+        self,
+        *,
+        n_steps: int,
+        initial_displacement: Callable,
+        initial_velocity: Callable,
+        initial_electric_potential: Callable,
+        output_step: Optional[iter] = None,
+        verbose: bool = False,
+        **kwargs,
+    ) -> List[PiezoelectricState]:
+        """
+        :param n_steps: number of time-step in simulation
+        :param output_step: from which time-step we want to get copy of State,
+                            default (n_steps-1,)
+                            example: for Setup.time-step = 2, n_steps = 10,  output_step = (2, 6, 9)
+                                     we get 3 shared copy of State for time-steps 4, 12 and 18
+        :param initial_displacement: for the solver
+        :param initial_velocity: for the solver
+        :param initial_electric_potential: for the solver
+        :param verbose: show prints
+        :return: state
+        """
+        output_step = (0, *output_step) if output_step else (0, n_steps)  # 0 for diff
+
+        state = PiezoelectricState(self.mesh)
+        state.displacement[:] = initial_displacement(
+            self.mesh.initial_nodes[: self.mesh.independent_nodes_count]
+        )
+        state.velocity[:] = initial_velocity(
+            self.mesh.initial_nodes[: self.mesh.independent_nodes_count]
+        )
+        state.electric_potential[:] = initial_electric_potential(
+            self.mesh.initial_nodes[: self.mesh.independent_nodes_count]
+        )
+
+        solution = state.velocity.reshape(2, -1)
+        solution_p = state.electric_potential
+
+        self.step_solver.var.displacement[:] = state.displacement.ravel().copy()
+        self.step_solver.var.velocity[:] = state.velocity.ravel().copy()
+        self.step_solver.var.electric_potential[:] = state.electric_potential.ravel().copy()
+
+        self.second_step_solver.var.displacement[:] = state.displacement.ravel().copy()
+        self.second_step_solver.var.velocity[:] = state.velocity.ravel().copy()
+        self.second_step_solver.var.electric_potential[:] = state.electric_potential.ravel().copy()
+
+        output_step = np.diff(output_step)
+        results = []
+        for n in output_step:
+            for _ in range(n):
+                self.step_solver.current_time += self.step_solver.var.time_step
+                self.second_step_solver.current_time += self.second_step_solver.var.time_step
+
+                solution, solution_t = self.find_solution_uzawa(
+                    state, solution, solution_p, verbose=verbose
+                )
+
+                if self.coordinates == "velocity":
+                    state.set_velocity(
+                        solution[:],
+                        update_displacement=True,
+                        time=self.step_solver.current_time,
+                    )
+                    state.set_temperature(solution_t)
+                else:
+                    raise ValueError(f"Unknown coordinates: {self.coordinates}")
+            results.append(state.copy())
+
+        return results
