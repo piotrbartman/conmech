@@ -19,15 +19,16 @@ class Drawer:
         self.config = config
         self.mesh = state.body.mesh
         self.node_size = 20 + (3000 / len(self.mesh.initial_nodes))
+        self.path = None
 
     def get_directory(self):
-        return f"./output/{self.config.current_time} - DRAWING"
+        return self.path
 
-    def draw(self, temp_max=None, temp_min=None, show=True, save=False, save_format="png"):
+    def draw(self, temp_max=None, temp_min=None, show=True, save=False, save_format="pdf"):
         fig, axes = plt.subplots()
 
         if hasattr(self.state, "temperature"):
-            temperature = self.state.velocity[:, 0]
+            temperature = self.state.temperature * 100
             self.draw_field(temperature, temp_min, temp_max, axes, fig)
         if hasattr(self.state, "electric_potential"):
             electric_potential = self.state.electric_potential[:]
@@ -62,8 +63,8 @@ class Drawer:
 
     def save_plot(self, format_):
         directory = self.get_directory()
-        cmh.create_folders(directory)
-        path = f"{directory}/{cmh.get_timestamp(self.config)}.{format_}"
+        # cmh.create_folders(directory)
+        path = f"{directory}"
         plt.savefig(
             path,
             transparent=False,
