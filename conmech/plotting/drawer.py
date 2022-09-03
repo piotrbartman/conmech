@@ -27,22 +27,22 @@ class Drawer:
         fig, axes = plt.subplots()
 
         if hasattr(self.state, "temperature"):
-            temperature = self.state.temperature[:]
+            temperature = self.state.velocity[:, 0]
             self.draw_field(temperature, temp_min, temp_max, axes, fig)
         if hasattr(self.state, "electric_potential"):
             electric_potential = self.state.electric_potential[:]
             self.draw_field(electric_potential, temp_min, temp_max, axes, fig)
 
-        self.draw_mesh(
-            self.mesh.initial_nodes,
-            axes,
-            label="Original",
-            node_color="0.6",
-            edge_color="0.8",
-        )
+        # self.draw_mesh(
+        #     self.mesh.initial_nodes,
+        #     axes,
+        #     label="Original",
+        #     node_color="0.6",
+        #     edge_color="0.8",
+        # )
 
         nodes = self.state.displaced_nodes
-        self.draw_mesh(nodes, axes, label="Deformed", node_color="k")
+        # self.draw_mesh(nodes, axes, label="Deformed", node_color="k")
         self.draw_boundary(edges=self.mesh.contact_boundary, nodes=nodes, axes=axes, edge_color="b")
         self.draw_boundary(
             edges=self.mesh.dirichlet_boundary, nodes=nodes, axes=axes, edge_color="r"

@@ -97,32 +97,36 @@ def main(steps, setup, show: bool = True, save: bool = False):
     setup = setup or TDynamicSetup(mesh_type="cross")
     runner = TDynamicProblemSolver(setup, solving_method="schur")
 
+    output_step = [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 511]
+
     states = runner.solve(
         n_steps=steps,
-        output_step=(steps,),
+        output_step=output_step,
         verbose=True,
         initial_displacement=setup.initial_displacement,
         initial_velocity=setup.initial_velocity,
         initial_temperature=setup.initial_temperature,
     )
     config = Config()
-    with open(f'output/temp/k_{int(np.log2(steps))}_h_{int(np.log2(setup.elements_number[0]))}',
-              'wb') as output:
-        pickle.dump(states[-1], output)
+    for i, state in zip(output_step, states):
+        with open(f'output/animation/k_{int(np.log2(steps))}_h_{int(np.log2(setup.elements_number[0]))}_t_{i}',
+                  'wb') as output:
+            pickle.dump(state, output)
 
-    with open(f'output/temp/k_{int(np.log2(steps))}_h_{int(np.log2(setup.elements_number[0]))}',
-              'rb') as output:
-        state = pickle.load(output)
-        print(f"k_{int(np.log2(steps))}_h_{int(np.log2(setup.elements_number[0]))}")
-        # Drawer(state=state, config=config).draw(
-        #     temp_max=np.max(state.temperature), temp_min=np.min(state.temperature), show=show, save=save
-        # )
+    for step in output_step:
+        with open(f'output/temp/k_{int(np.log2(steps))}_h_{int(np.log2(setup.elements_number[0]))}_t_{step}',
+                  'rb') as output:
+            state = pickle.load(output)
+            print(f"k_{int(np.log2(steps))}_h_{int(np.log2(setup.elements_number[0]))}")
+            Drawer(state=state, config=config).draw(
+                temp_max=np.max(state.velocity[:, 0]), temp_min=np.min(state.velocity[:, 0]), show=show, save=save
+            )
 
 
 if __name__ == "__main__":
     T = 1
-    ks = [2**i for i in range(0, 8)]
-    hs = [2**i for i in range(0, 4)]
+    ks = [2**i for i in [9]]
+    hs = [2**i for i in [4, 5]]
     for h in hs:
         for k in ks:
             setup = TDynamicSetup(mesh_type="cross")
