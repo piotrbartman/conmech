@@ -24,9 +24,10 @@ class Drawer:
         self.deformed_mesh_color = "k"
         self.original_mesh_color = "0.7"
         self.cmap = plt.cm.plasma
+        self.counter = 0
 
     def get_directory(self):
-        return f"./output/{self.config.current_time} - DRAWING"
+        return f"/Users/prb/PycharmProjects/conmech/output/{self.config.current_time} - DRAWING"
 
     def draw(self, fig_axes=None, temp_max=None, temp_min=None, draw_mesh=True, show=True, save=False, save_format="png", title=None):
         fig, axes = fig_axes or plt.subplots()
@@ -89,6 +90,7 @@ class Drawer:
         axes.set_aspect('equal', adjustable='box')
         plt.title(title)
         # fig.set_size_inches(self.mesh.mesh_prop.scale_x * 12, self.mesh.mesh_prop.scale_y * 16)
+        plt.grid()
 
         if show:
             fig.tight_layout()
@@ -171,4 +173,4 @@ class Drawer:
         # cbar_ax = f.add_axes([0.875, 0.15, 0.025, 0.6])
         sm = plt.cm.ScalarMappable(cmap=self.cmap, norm=plt.Normalize(vmin=v_min, vmax=v_max))
         sm.set_array([])
-        fig.colorbar(sm, orientation="horizontal", label="Temperature relative error")
+        fig.colorbar(sm, orientation="horizontal", label="Norm of stress tensor")

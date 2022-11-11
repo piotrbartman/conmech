@@ -45,10 +45,14 @@ def make_contact_law(limit_value, limit):
     return JureczkaOchalBartman2023
 
 
-x1 = 0.15
-x2 = 1.05
-y1 = 0.15
-y2 = 0.45
+# x1 = 0.15
+# x2 = 1.05
+# y1 = 0.15
+# y2 = 0.45
+x1 = .19, .38
+x2 = .30, .55
+x3 = .50, .42
+x4 = .53, .54
 r = 0.05
 eps = 0.01
 
@@ -71,10 +75,10 @@ def make_setup(mesh_type_, boundaries_, contact_law_, elements_number_, friction
 
         @staticmethod
         def outer_forces(x):
-            if x[1] == 0.6:
-                return np.array([-4.0, -4.0])
-            if x[0] == 1.2:
-                return np.array([-4.0, -4.0])
+            if x[1] > 0.6:
+                return np.array([-2.0, 0])
+            if x[0] > 0.4:
+                return np.array([0.0, -4.0])
             return np.array([0.0, 0.0])
 
         @staticmethod
@@ -172,22 +176,24 @@ def constitutive_law(u, v, setup, elements, nodes):
 def main(show: bool = True, save: bool = False):
     simulate = True
     config = Config()
-    names = ("four_screws", "one_screw", "friction", "hard")
-    h = 100
-    n_steps = 3
-    output_steps = (0, n_steps)
+    names = ("four_screws", )#"one_screw", "friction", "hard")
+    h = 120
+    n_steps = 32
+    output_steps = (0, 1, 2, 4, 6, 8, 12, 16, 24, 32)
+
 
     four_screws = BoundariesDescription(
         contact=lambda x: x[1] == 0,
-        dirichlet=lambda x: ((x[0] - x1) ** 2 + (x[1] - y1) ** 2 <= (r + eps) ** 2
-                             or (x[0] - x1) ** 2 + (x[1] - y2) ** 2 <= (r + eps) ** 2
-                             or (x[0] - x2) ** 2 + (x[1] - y1) ** 2 <= (r + eps) ** 2
-                             or (x[0] - x2) ** 2 + (x[1] - y2) ** 2 <= (r + eps) ** 2
+        # dirichlet=lambda x: x[1] == 0 and 0.3 < x[0] < 0.4,
+        dirichlet=lambda x: ((x[0] - x1[0]) ** 2 + (x[1] - x1[1]) ** 2 <= (r + eps) ** 2
+                             # or (x[0] - x1) ** 2 + (x[1] - y2) ** 2 <= (r + eps) ** 2
+                             # or (x[0] - x2) ** 2 + (x[1] - y1) ** 2 <= (r + eps) ** 2
+                             # or (x[0] - x2) ** 2 + (x[1] - y2) ** 2 <= (r + eps) ** 2
                              )
     )
     one_screw = BoundariesDescription(
         contact=lambda x: x[1] == 0,
-        dirichlet=lambda x: (x[0] - x1) ** 2 + (x[1] - y1) ** 2 <= (r + eps) ** 2
+        # dirichlet=lambda x: (x[0] - x1) ** 2 + (x[1] - y1) ** 2 <= (r + eps) ** 2
     )
     soft_foundation = make_contact_law(300, 0.1)
     hard_foundation = make_contact_law(3000, 0.1)
@@ -220,7 +226,7 @@ def main(show: bool = True, save: bool = False):
                 initial_velocity=setup.initial_velocity,
             )
             for state in states:
-                with open(f'output/2023/{name}_t_{int(state.time//setup.time_step)}_h_{h}',
+                with open(f'/Users/prb/PycharmProjects/conmech/output/2023/{name}_t_{int(state.time//setup.time_step)}_h_{h}',
                           'wb') as output:
                     pickle.dump(state, output)
 
@@ -239,7 +245,7 @@ def main(show: bool = True, save: bool = False):
         else:
             steps = output_steps[1:]
         for time_step in steps:
-            with open(f'output/2023/{name}_t_{time_step}_h_{h}',
+            with open(f'/Users/prb/PycharmProjects/conmech/output/2023/{name}_t_{time_step}_h_{h}',
                       'rb') as output:
                 state = pickle.load(output)
             if time_step == 0:
@@ -264,5 +270,4 @@ def main(show: bool = True, save: bool = False):
 
 
 if __name__ == "__main__":
-    main(show=True)
-
+    main(show=False, save=True)

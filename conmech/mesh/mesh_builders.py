@@ -1,6 +1,6 @@
 from typing import Tuple
 
-import dmsh as dmsh
+import dmsh as dmsh  # FIXME
 import numpy as np
 import pygmsh
 
@@ -100,30 +100,75 @@ def special_mesh(mesh_prop):
 
 
 def special_mesh_bow(mesh_prop):
-    with pygmsh.geo.Geometry() as geo:
-        geo = dmsh.Polygon(
-            [
-                [0.0, 0.0],
-                [1.2, 0.0],
-                [1.2, 0.6],
-                [0.0, 0.6],
-            ]
-        )
-        x1 = 0.15
-        x2 = 1.05
-        y1 = 0.15
-        y2 = 0.45
-        r = 0.05
-        eps = 0.01
-        geo = geo - dmsh.Circle([0.6, 0.0], .3)
-        geo = geo - dmsh.Circle([x1, y1], r)
-        geo = geo - dmsh.Circle([x2, y1], r)
-        geo = geo - dmsh.Circle([x1, y2], r)
-        geo = geo - dmsh.Circle([x2, y2], r)
-        # geo = dmsh.Rectangle(-1.0, +2.0, -1.0, +1.0)
-        nodes, elements = dmsh.generate(geo, 1 / mesh_prop.mesh_density[0])
-
-
+    vertices = [
+        [52, 0],
+        [47, 4],
+        [40, 6],
+        [39, 18],
+        [52, 29],
+        [59, 24],
+        [69, 44],
+        [57, 60],
+        [38, 69],
+        [22, 64],
+        [7, 55],
+        [3, 43],
+        [5, 31],
+        [13, 27],
+        [17, 30],
+        [29, 19],
+        [29, 6],
+        [22, 2],
+        [18, 0],
+    ]
+    vertices = [[a[0]/100, a[1]/100] for a in vertices]
+    # with pygmsh.geo.Geometry() as geo:
+    geo = dmsh.Polygon(
+        vertices
+    )
+    # x1 = 0.15
+    # x2 = 1.05
+    # y1 = 0.15
+    # y2 = 0.45
+    # r = 0.05
+    # eps = 0.01
+    # geo = geo - dmsh.Circle([0.6, 0.0], .3)
+    # geo = geo - dmsh.Circle([x1, y1], r)
+    # geo = geo - dmsh.Circle([x2, y1], r)
+    # geo = geo - dmsh.Circle([x1, y2], r)
+    # geo = geo - dmsh.Circle([x2, y2], r)
+    # # geo = dmsh.Rectangle(-1.0, +2.0, -1.0, +1.0)
+    vertices = [
+        [34, 23],
+        [48, 33],
+        [24, 31],
+    ]
+    vertices = [[a[0] / 100, a[1] / 100] for a in vertices]
+    geo = geo - dmsh.Polygon(vertices)
+    star = [
+        [-10, 0],
+        [-2.5, 2.5],
+        [0, 10],
+        [2.5, 2.5],
+        [10, 0],
+        [2.5, -2.5],
+        [0, -10],
+        [-2.5, -2.5],
+    ]
+    x1 = .19, .38
+    x2 = .30, .55
+    x3 = .50, .42
+    x4 = .53, .54
+    star = [[a[0] / 200, a[1] / 200] for a in star]
+    star_1 = [[a[0] + 19/100, a[1] + 38/100] for a in star]
+    star_2 = [[a[0] + 30/100, a[1] + 55/100] for a in star]
+    star_3 = [[a[0] + 50/100, a[1] + 42/100] for a in star]
+    star_4 = [[a[0] + 53/100, a[1] + 54/100] for a in star]
+    geo = geo - dmsh.Polygon(star_1)
+    geo = geo - dmsh.Polygon(star_2)
+    geo = geo - dmsh.Polygon(star_3)
+    geo = geo - dmsh.Polygon(star_4)
+    nodes, elements = dmsh.generate(geo, 1 / mesh_prop.mesh_density[0])
 
         # geom.add_polygon(
         #     [
