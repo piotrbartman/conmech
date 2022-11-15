@@ -174,7 +174,7 @@ def constitutive_law(u, v, setup, elements, nodes):
 
 
 def main(show: bool = True, save: bool = False):
-    simulate = True
+    simulate = False
     config = Config()
     names = ("four_screws", )#"one_screw", "friction", "hard")
     h = 120
