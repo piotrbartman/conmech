@@ -100,7 +100,7 @@ class MeshFactory:
         mesh.dirichlet_closure = dirichlet_closure
 
         max_edges = 4
-        mesh.edges = np.zeros((np.max(mesh.Edges) + 1, max_edges, 2), dtype=np.int)
+        mesh.edges = np.zeros((np.max(mesh.Edges) + 1, max_edges, 2), dtype=np.int64)
         mesh.edges -= 1
         for i in range(len(mesh.Edges)):
             edges = mesh.edges[mesh.Edges[i][0]]

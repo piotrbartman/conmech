@@ -17,8 +17,8 @@ class Mesh:
     def __init__(self):
         self.Points = np.zeros((0, 3))
         self.points = np.zeros((0, 2))
-        self.Edges = np.zeros((0, 3), dtype=np.int)  # TODO optimize (remove and use only edges)
-        self.edges = np.zeros((0, 4, 2), dtype=np.int)
+        self.Edges = np.zeros((0, 3), dtype=np.int64)  # TODO optimize (remove and use only edges)
+        self.edges = np.zeros((0, 4, 2), dtype=np.int64)
         # TODO: bad practice
         #  i, j, type: (always i<j on plane)
         #  0 - no edge
