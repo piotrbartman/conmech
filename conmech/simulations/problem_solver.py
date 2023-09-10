@@ -333,10 +333,8 @@ class PoissonSolver(ProblemSolver):
         :param problem:
         :param solving_method: 'schur', 'optimization', 'direct'
         """
-        body_prop = ElasticProperties(
+        body_prop = BodyProperties(
             mass_density=1.0,
-            mu=0,
-            lambda_=0,
         )
         super().__init__(problem, body_prop)
 

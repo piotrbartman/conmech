@@ -65,7 +65,11 @@ def get_dynamics(elements: np.ndarray, body_prop: BodyProperties, U, V, W):
         else None
     )
 
-    acceleration_operator = factory.calculate_acceleration(U, body_prop.mass_density)
+    acceleration_operator = (
+        factory.calculate_acceleration(U, body_prop.mass_density)
+        if isinstance(body_prop, ViscoelasticProperties)
+        else None
+    )
 
     if isinstance(body_prop, TemperatureBodyProperties):
         thermal_expansion = factory.calculate_thermal_expansion(V, body_prop.thermal_expansion)

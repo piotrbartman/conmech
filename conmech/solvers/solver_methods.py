@@ -266,7 +266,7 @@ def make_cost_functional_poisson(jn: Callable):
         return cost
 
     # pylint: disable=unused-argument # u_vector_old, dt
-    # @numba.njit()
+    @numba.njit()
     def cost_functional(
         u_vector, nodes, contact_boundary, contact_normals, lhs, rhs, u_vector_old, dt
     ):

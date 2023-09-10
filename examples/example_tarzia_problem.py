@@ -8,6 +8,7 @@ from conmech.mesh.boundaries_description import BoundariesDescription
 from conmech.plotting.drawer import Drawer
 from conmech.scenarios.problems import PoissonProblem, ContactLaw
 from conmech.simulations.problem_solver import PoissonSolver
+from examples.error_estimates_tarzia import compare
 
 
 def make_slope_contact_law(slope: float) -> Type[ContactLaw]:
@@ -78,11 +79,11 @@ def main(config: Config):
     """
     alphas = [0.01, 0.1, 1, 10, 100, 1000, 10000]
     ihs = [4, 8, 16, 32, 64, 128, 256]
-    alphas = alphas
-    ihs = ihs
+    alphas = alphas[:]
+    ihs = ihs[:]  # TODO
 
-    for alpha in alphas:
-        for ih in ihs:
+    for ih in ihs:
+        for alpha in alphas:
             try:
                 if config.force:
                     simulate(config, alpha, ih)
@@ -90,6 +91,7 @@ def main(config: Config):
             except FileNotFoundError:
                 simulate(config, alpha, ih)
                 draw(config, alpha, ih)
+    convergence(config, alphas, ihs)
 
 
 def simulate(config, alpha, ih):
@@ -98,7 +100,7 @@ def simulate(config, alpha, ih):
     setup.contact_law = make_slope_contact_law(slope=alpha)
     setup.elements_number = (1 * ih, 2 * ih)
 
-    runner = PoissonSolver(setup, "global")
+    runner = PoissonSolver(setup, "schur")
 
     state = runner.solve(verbose=True)
 
@@ -108,8 +110,7 @@ def simulate(config, alpha, ih):
             "wb+",
         ) as output:
             # Workaround
-            state.body.dynamics.force.outer.source = None
-            state.body.dynamics.force.inner.source = None
+            state.body.dynamics = None
             state.body.properties.relaxation = None
             state.setup = None
             state.constitutive_law = None
@@ -124,10 +125,60 @@ def draw(config, alpha, ih):
     drawer = Drawer(state=state, config=config)
     drawer.cmap = "plasma"
     drawer.field_name = "temperature"
-    drawer.draw(
-        show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
-    )
+    # drawer.draw(
+    #     show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
+    # )
+
+
+def convergence(config, alphas, ihs):
+    cvgs = {
+        "hn_ac": [(ihs[0], a) for a in alphas],
+        "hx_ac": [(ihs[-1], a) for a in alphas],
+        "hc_an": [(ih, alphas[0]) for ih in ihs],
+        "hc_ax": [(ih, alphas[-1]) for ih in ihs],
+        "hx_ax": [(ihs[i], alphas[i]) for i in range(len(ihs))]
+    }
+
+    for cvg, params in cvgs.items():
+        ih = params[-1][0]
+        alpha = params[-1][1]
+        with open(f"{config.outputs_path}/alpha_{alpha}_ih_{ih}", "rb") as output:
+            ref = pickle.load(output)
+        for ih, alpha in params[:-1]:
+            with open(f"{config.outputs_path}/alpha_{alpha}_ih_{ih}", "rb") as output:
+                sol = pickle.load(output)
+            print(cvg, compare(ref, sol))
 
 
 if __name__ == "__main__":
     main(Config(outputs_path="./output/BOT2023", force=False).init())
+
+    "cd ~/devel/conmech && git pull; PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/example_tarzia_problem.py &"
+    # hn_ac(0, 1675.6377901503872)
+    # hn_ac(0, 1424.4089747346386)
+    # hn_ac(0, 570.3035428534573)
+    # hn_ac(0, 82.4145654649069)
+    # hn_ac(0, 9.024423274856195)
+    # hn_ac(0, 0.8570601649719317)
+
+    # hx_ac(0, 396671.37946907803)
+    # hx_ac(0, 362252.1828834345)
+    # hx_ac(0, 196957.26862225882)
+    # hx_ac(0, 41166.897184751695)
+    # hx_ac(0, 6405.289959436339)
+    # hx_ac(0, 969.8479417923099)
+
+    # hc_an(0, 34810.85013895854)
+    # hc_an(0, 22577.794240169485)
+    # hc_an(0, 5505.7223168591445)
+    # hc_an(0, 6102.412144549319)
+
+    # hc_ax(0, 70704.1114522041)
+    # hc_ax(0, 70893.28055019652)
+    # hc_ax(0, 63141.28381364561)
+    # hc_ax(0, 6887.845735312516)
+
+    # hx_ax(0, 369667.3839689251)
+    # hx_ax(0, 305495.01151754276)
+    # hx_ax(0, 98587.20060468125)
+    # hx_ax(0, 42172.21447780231)
