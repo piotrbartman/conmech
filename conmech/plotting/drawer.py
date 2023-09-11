@@ -283,26 +283,27 @@ class Drawer:
 
         n_layers = 100
         axes.tricontour(x, y, self.mesh.elements, field, 15, colors="k", linewidths=0.2)
-        axes.tricontourf(
-            x,
-            y,
-            self.mesh.elements,
-            field,
-            n_layers,
-            cmap=self.cmap,
-            vmin=v_min,
-            vmax=v_max,
-        )
+        if self.colorful:
+            axes.tricontourf(
+                x,
+                y,
+                self.mesh.elements,
+                field,
+                n_layers,
+                cmap=self.cmap,
+                vmin=v_min,
+                vmax=v_max,
+            )
 
-        # cbar_ax = fig.add_axes([0.875, 0.15, 0.025, 0.6])
-        # ax_pos = axes.get_position()
-        # cax = fig.add_axes(
-        #     [axes.get_position().x0, axes.get_position().y0 * 0,
-        #     axes.get_position().width, axes.get_position().height * 0.05])
+            # cbar_ax = fig.add_axes([0.875, 0.15, 0.025, 0.6])
+            # ax_pos = axes.get_position()
+            # cax = fig.add_axes(
+            #     [axes.get_position().x0, axes.get_position().y0 * 0,
+            #     axes.get_position().width, axes.get_position().height * 0.05])
 
-        # from mpl_toolkits.axes_grid1 import make_axes_locatable
-        # divider = make_axes_locatable(axes)
-        # cax = divider.append_axes("bottom", size="5%", pad=0.15)
-        sm = plt.cm.ScalarMappable(cmap=self.cmap, norm=plt.Normalize(vmin=v_min, vmax=v_max))
-        sm.set_array([])
-        fig.colorbar(sm, orientation="horizontal", label=self.field_label, ax=axes)
+            # from mpl_toolkits.axes_grid1 import make_axes_locatable
+            # divider = make_axes_locatable(axes)
+            # cax = divider.append_axes("bottom", size="5%", pad=0.15)
+            sm = plt.cm.ScalarMappable(cmap=self.cmap, norm=plt.Normalize(vmin=v_min, vmax=v_max))
+            sm.set_array([])
+            fig.colorbar(sm, orientation="horizontal", label=self.field_label, ax=axes)
