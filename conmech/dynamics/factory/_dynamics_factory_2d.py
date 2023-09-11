@@ -23,8 +23,8 @@ def get_edges_features_matrix_numba(elements, nodes):
         (FEATURE_MATRIX_COUNT, nodes_count, nodes_count), dtype=np.double
     )
     element_initial_volume = np.zeros(elements_count)
-    # Local stifness matrices (w[0, 0], w[0, 1], w[1, 0], w[1, 1]) per mesh element
-    # Detailed description can be found in [LSM] Local stifness matrix
+    # Local stiffness matrices (w[0, 0], w[0, 1], w[1, 0], w[1, 1]) per mesh element
+    # Detailed description can be found in [LSM] Local stiffness matrix
     local_stifness_matrices = np.empty(
         (DIMENSION, DIMENSION, elements_count, element_size, element_size)
     )
