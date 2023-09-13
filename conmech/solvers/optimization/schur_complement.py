@@ -37,17 +37,14 @@ class SchurComplementOptimization(Optimization):
             self.free_x_contact,
             self.contact_x_free,
             self.free_x_free_inverted,
-        ) = self.recalculate_displacement()
-
-        self.node_forces_, self.forces_free = self.recalculate_forces()
-
-    def recalculate_displacement(self):
-        return calculate_schur_complement_matrices(
+        ) = calculate_schur_complement_matrices(
             matrix=self.statement.left_hand_side,
             dimension=self.statement.dimension,
             contact_indices=self.contact_ids,
             free_indices=self.free_ids,
         )
+
+        self.node_forces_, self.forces_free = self.recalculate_forces()
 
     def recalculate_forces(self):
         node_forces, forces_free = calculate_schur_complement_vector(

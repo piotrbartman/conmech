@@ -35,6 +35,7 @@ class Direct(Solver):
 
         if contact_law is not None:
             self.equation = make_equation(
+                dimension=self.body.mesh.dimension,
                 jn=contact_law.subderivative_normal_direction,
                 jt=contact_law.regularized_subderivative_tangential_direction,
                 h_functional=friction_bound,

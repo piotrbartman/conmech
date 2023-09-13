@@ -1,30 +1,68 @@
+# CONMECH @ Jagiellonian University in Kraków
+#
+# Copyright (C) 2023  Piotr Bartman <piotr.bartman@uj.edu.pl>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+# USA.
 import pickle
 from dataclasses import dataclass
 from typing import Optional, Type
 
+import numba
 import numpy as np
 from conmech.helpers.config import Config
 from conmech.mesh.boundaries_description import BoundariesDescription
 from conmech.plotting.drawer import Drawer
-from conmech.scenarios.problems import PoissonProblem, ContactLaw
+from conmech.scenarios.problems import PoissonProblem, ContactLaw, DummyContactLaw
 from conmech.simulations.problem_solver import PoissonSolver
 from examples.error_estimates_tarzia import compare
 
 
-def make_slope_contact_law(slope: float) -> Type[ContactLaw]:
+def make_slope_contact_law(alpha: float, b: float, example: str = "11") -> Type[ContactLaw]:
+    """
+    Potentials based on https://doi.org/10.48550/arXiv.2106.04702
+    """
+    if alpha == np.inf:
+        return DummyContactLaw
+
+    @numba.njit()
+    def example_11(r):
+        """
+        EXAMPLE 11.
+        """
+        if r < b:
+            result = (r - b) ** 2
+        else:
+            result = 1 - np.exp(-(r-b))
+        return result
+
+    @numba.njit()
+    def example_13(r):
+        """
+        EXAMPLE 13.
+        """
+        result = 0.5 * (r - b) ** 2
+        return result
+
+    examples = {"11": example_11, "13": example_13}
+    example_func = examples[example]
+
     class TarziaContactLaw(ContactLaw):
         @staticmethod
         def potential_normal_direction(u_nu: float) -> float:
-            b = 5
-            r = u_nu
-            # EXAMPLE 11
-            # if r < b:
-            #     result = (r - b) ** 2
-            # else:
-            #     result = 1 - np.exp(-(r-b))
-            # EXAMPLE 13
-            result = 0.5 * (r - b) ** 2
-            result *= slope
+            result = alpha * example_func(u_nu)
             return result
 
         @staticmethod
@@ -48,26 +86,24 @@ class StaticPoissonSetup(PoissonProblem):
     grid_height: ... = 1
     elements_number: ... = (6, 12)
 
-    contact_law: ... = make_slope_contact_law(slope=1000)
+    contact_law: ... = None
 
     @staticmethod
     def internal_temperature(x: np.ndarray, t: Optional[float] = None) -> np.ndarray:
-        if 0.4 <= x[0] <= 0.6 and 0.4 <= x[1] <= 0.6:
-            return np.array([-10.0])
-        return np.array([2 * np.pi**2 * np.sin(np.pi * x[0]) * np.sin(np.pi * x[1])])
+        return np.array([0.0])
 
     @staticmethod
     def outer_temperature(x: np.ndarray, t: Optional[float] = None) -> np.ndarray:
-        if x[1] > 0.5:
-            return np.array([1.0])
-        return np.array([-1.0])
+        if x[0] == 2.0:
+            return np.array([ - 1 ])
+        return np.array([ + 1 ])
 
     boundaries: ... = BoundariesDescription(
         dirichlet=(
-            lambda x: x[0] == 0.0,
+            lambda x: x[1] == 1.0,
             lambda x: np.full(x.shape[0], 5),
         ),
-        contact=lambda x: x[0] == 2.0,
+        contact=lambda x: x[1] == 0.0
     )
 
 
@@ -77,10 +113,10 @@ def main(config: Config):
 
     To see result of simulation you need to call from python `main(Config().init())`.
     """
-    alphas = [0.01, 0.1, 1, 10, 100, 1000, 10000]
+    alphas = [1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
     alphas = alphas[:]
-    ihs = ihs[:]  # TODO
+    ihs = ihs[0:1]  # TODO
 
     for ih in ihs:
         for alpha in alphas:
@@ -94,15 +130,27 @@ def main(config: Config):
     convergence(config, alphas, ihs)
 
 
-def simulate(config, alpha, ih):
+def _set_alpha(setup, alpha):
+    setup.contact_law = make_slope_contact_law(alpha=alpha, b=-5, example="13")
+    if alpha == np.inf:
+        setup.boundaries = BoundariesDescription(
+            dirichlet=(
+                lambda x: x[1] == 1.0 or x[1] == 0.0,
+                lambda x: np.full(x.shape[0], 5),
+            ),
+        )
+
+
+def simulate(config, alpha, ih=None, alpha_setter=_set_alpha, setup=None):
     print(f"Simulate {alpha=}, {ih=}")
-    setup = StaticPoissonSetup(mesh_type="cross")
-    setup.contact_law = make_slope_contact_law(slope=alpha)
-    setup.elements_number = (1 * ih, 2 * ih)
+    setup = setup or StaticPoissonSetup(mesh_type="cross")
+    alpha_setter(setup, alpha)
+    if ih is not None:
+        setup.elements_number = (1 * ih, 2 * ih)
 
-    runner = PoissonSolver(setup, "schur")
+    runner = PoissonSolver(setup, solving_method="auto")
 
-    state = runner.solve(verbose=True)
+    state = runner.solve(verbose=True, disp=True, method="POWELL")
 
     if config.outputs_path:
         with open(
@@ -125,9 +173,11 @@ def draw(config, alpha, ih):
     drawer = Drawer(state=state, config=config)
     drawer.cmap = "plasma"
     drawer.field_name = "temperature"
-    # drawer.draw(
-    #     show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
-    # )
+    drawer.original_mesh_color = None
+    drawer.deformed_mesh_color = None
+    drawer.draw(
+        show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
+    )
 
 
 def convergence(config, alphas, ihs):
@@ -153,32 +203,5 @@ def convergence(config, alphas, ihs):
 if __name__ == "__main__":
     main(Config(outputs_path="./output/BOT2023", force=False).init())
 
-    "cd ~/devel/conmech && git pull; PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/example_tarzia_problem.py &"
-    # hn_ac(0, 1675.6377901503872)
-    # hn_ac(0, 1424.4089747346386)
-    # hn_ac(0, 570.3035428534573)
-    # hn_ac(0, 82.4145654649069)
-    # hn_ac(0, 9.024423274856195)
-    # hn_ac(0, 0.8570601649719317)
+    "cd ~/devel/conmech && git pull; PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
 
-    # hx_ac(0, 396671.37946907803)
-    # hx_ac(0, 362252.1828834345)
-    # hx_ac(0, 196957.26862225882)
-    # hx_ac(0, 41166.897184751695)
-    # hx_ac(0, 6405.289959436339)
-    # hx_ac(0, 969.8479417923099)
-
-    # hc_an(0, 34810.85013895854)
-    # hc_an(0, 22577.794240169485)
-    # hc_an(0, 5505.7223168591445)
-    # hc_an(0, 6102.412144549319)
-
-    # hc_ax(0, 70704.1114522041)
-    # hc_ax(0, 70893.28055019652)
-    # hc_ax(0, 63141.28381364561)
-    # hc_ax(0, 6887.845735312516)
-
-    # hx_ax(0, 369667.3839689251)
-    # hx_ax(0, 305495.01151754276)
-    # hx_ax(0, 98587.20060468125)
-    # hx_ax(0, 42172.21447780231)

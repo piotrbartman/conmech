@@ -14,7 +14,7 @@ from examples.example_piezoelectric_dynamic import main as dynamic_piezo
 from examples.example_temperature_dynamic import main as dynamic_temp
 from examples.Jureczka_and_Ochal_2019 import main as Jureczka_and_Ochal_2019
 from examples.Jureczka_Ochal_Bartman_2023 import main as Jureczka_Ochal_Bartman_2023
-from examples.Sofonea_Ochal_Bartman_2023 import main as Sofonea_Ochal_Bartman_2023
+from examples.Bartman_Ochal_Sofonea_2023 import main as Sofonea_Ochal_Bartman_2023
 from examples.example_poisson import main as poisson
 from examples.example_nonhomogenous_density import main as nonhomogenous_density
 

@@ -8,11 +8,9 @@ import numpy as np
 
 from conmech.helpers import nph
 
-DIMENSION = 2
-
 
 @numba.njit(inline="always")
-def interpolate_node_between(node_id_0, node_id_1, vector, dimension=DIMENSION):
+def interpolate_node_between(node_id_0, node_id_1, vector, dimension):
     result = np.zeros(dimension)
     offset = len(vector) // dimension
     for i in range(dimension):
@@ -42,7 +40,7 @@ def interpolate_node_between_3d(node_id_0, node_id_1, node_id_2, vector, dimensi
 
 # TODO #97
 @numba.njit(inline="always")
-def interpolate_node_between_2023(node_id_0, _node_id_1, vector, dimension=DIMENSION):
+def interpolate_node_between_2023(node_id_0, _node_id_1, vector, dimension):
     result = np.zeros(dimension)
     offset = len(vector) // dimension
     for i in range(dimension):
@@ -52,7 +50,7 @@ def interpolate_node_between_2023(node_id_0, _node_id_1, vector, dimension=DIMEN
 
 
 def make_equation(
-    jn: Optional[callable], jt: Optional[callable], h_functional: Optional[callable]
+    jn: Optional[callable], jt: Optional[callable], h_functional: Optional[callable], dimension
 ) -> callable:
     # TODO Make it prettier
     if jn is None:
@@ -70,7 +68,7 @@ def make_equation(
         @numba.njit()
         def contact_part(u_vector, nodes, contact_boundary, contact_normals):
             contact_vector = np.zeros_like(u_vector)
-            offset = len(u_vector) // DIMENSION
+            offset = len(u_vector) // dimension
 
             for ei, edge in enumerate(contact_boundary):
                 n_id_0 = edge[0]
@@ -79,7 +77,7 @@ def make_equation(
                 n_1 = nodes[n_id_1]
 
                 # ASSUMING `u_vector` and `nodes` have the same order!
-                um = interpolate_node_between(n_id_0, n_id_1, u_vector)
+                um = interpolate_node_between(n_id_0, n_id_1, u_vector, dimension)
 
                 normal_vector = contact_normals[ei]
 
@@ -145,7 +143,10 @@ def njit(func: Optional[Callable], value: Optional[Any] = 0) -> Callable:
 
 
 def make_cost_functional(
-    jn: Callable, jt: Optional[Callable] = None, h_functional: Optional[Callable] = None
+        dimension: int,
+        jn: Callable,
+        jt: Optional[Callable] = None,
+        h_functional: Optional[Callable] = None
 ):
     jn = njit(jn)
     jt = njit(jt)
@@ -154,7 +155,7 @@ def make_cost_functional(
     @numba.njit()
     def contact_cost_functional(u_vector, u_vector_old, nodes, contact_boundary, contact_normals):
         cost = 0
-        offset = len(u_vector) // DIMENSION
+        offset = len(u_vector) // 2
 
         for ei, edge in enumerate(contact_boundary):
             n_id_0 = edge[0]
@@ -163,8 +164,8 @@ def make_cost_functional(
             n_1 = nodes[n_id_1]
 
             # ASSUMING `u_vector` and `nodes` have the same order!
-            um = interpolate_node_between(n_id_0, n_id_1, u_vector)
-            um_old = interpolate_node_between(n_id_0, n_id_1, u_vector_old)
+            um = interpolate_node_between(n_id_0, n_id_1, u_vector, dimension)
+            um_old = interpolate_node_between(n_id_0, n_id_1, u_vector_old, dimension)
 
             normal_vector = contact_normals[ei]
 
@@ -194,7 +195,10 @@ def make_cost_functional(
 
 
 def make_cost_functional_3d(
-    jn: Callable, jt: Optional[Callable] = None, h_functional: Optional[Callable] = None
+        dimension: int,
+        jn: Callable,
+        jt: Optional[Callable] = None,
+        h_functional: Optional[Callable] = None
 ):
     jn = njit(jn)
     jt = njit(jt)
@@ -204,7 +208,7 @@ def make_cost_functional_3d(
     @numba.njit()
     def contact_cost_functional(u_vector, u_vector_old, nodes, contact_boundary, contact_normals):
         cost = 0
-        offset = len(u_vector) // 3
+        offset = len(u_vector) // dimension
 
         for ei, edge in enumerate(contact_boundary):
             n_id_0 = edge[0]
@@ -240,13 +244,13 @@ def make_cost_functional_3d(
     return cost_functional
 
 
-def make_cost_functional_poisson(jn: Callable):
+def make_cost_functional_poisson(dimension: int, jn: Callable):
     jn = njit(jn)
 
     @numba.njit()
     def contact_cost_functional(u_vector, nodes, contact_boundary, contact_normals):
         cost = 0
-        offset = len(u_vector) // DIMENSION
+        offset = len(u_vector) // dimension
 
         for ei, edge in enumerate(contact_boundary):
             n_id_0 = edge[0]
@@ -255,7 +259,7 @@ def make_cost_functional_poisson(jn: Callable):
             n_1 = nodes[n_id_1]
 
             # ASSUMING `u_vector` and `nodes` have the same order!
-            um = interpolate_node_between(n_id_0, n_id_1, u_vector)
+            um = interpolate_node_between(n_id_0, n_id_1, u_vector, dimension)
 
             normal_vector = contact_normals[ei]
 
@@ -279,7 +283,10 @@ def make_cost_functional_poisson(jn: Callable):
 
 
 def make_cost_functional_2023(  # TODO #97
-    jn: Callable, jt: Optional[Callable] = None, h_functional: Optional[Callable] = None
+        dimension: int,
+        jn: Callable,
+        jt: Optional[Callable] = None,
+        h_functional: Optional[Callable] = None
 ):
     jn = njit(jn)
     jt = njit(jt)
@@ -288,7 +295,7 @@ def make_cost_functional_2023(  # TODO #97
     @numba.njit()
     def contact_cost_functional(v_vector, u_vector_old, nodes, contact_boundary, contact_normals):
         cost = 0
-        offset = len(v_vector) // DIMENSION
+        offset = len(v_vector) // dimension
 
         for ei, edge in enumerate(contact_boundary):
             n_id_0 = edge[0]
@@ -338,10 +345,11 @@ def make_cost_functional_2023(  # TODO #97
 
 
 def make_cost_functional_temperature(
-    hn: Callable,
-    ht: Optional[Callable] = None,
-    h_functional: Optional[Callable] = None,
-    heat_exchange: Optional[Callable] = None,
+        dimension: int,
+        hn: Callable,
+        ht: Optional[Callable] = None,
+        h_functional: Optional[Callable] = None,
+        heat_exchange: Optional[Callable] = None,
 ):
     _hn = njit(hn)  # TODO #48
     _ht = njit(ht)
@@ -351,7 +359,7 @@ def make_cost_functional_temperature(
     @numba.njit()
     def contact_cost_functional(u_vector, nodes, contact_boundary, contact_normals, temp_vector):
         cost = 0
-        offset = len(u_vector) // DIMENSION
+        offset = len(u_vector) // dimension
 
         for ei, edge in enumerate(contact_boundary):
             n_id_0 = edge[0]
@@ -360,8 +368,8 @@ def make_cost_functional_temperature(
             n_1 = nodes[n_id_1]
 
             # ASSUMING `u_vector` and `nodes` have the same order!
-            um = interpolate_node_between(n_id_0, n_id_1, u_vector)
-            temp_m = interpolate_node_between(n_id_0, n_id_1, temp_vector, dimension=1)
+            um = interpolate_node_between(n_id_0, n_id_1, u_vector, dimension)
+            temp_m = interpolate_node_between(n_id_0, n_id_1, temp_vector, dimension)
 
             normal_vector = contact_normals[ei]
 
@@ -395,6 +403,7 @@ def make_cost_functional_temperature(
 
 
 def make_cost_functional_piezoelectricity(
+    dimension: int,
     hn: Callable,
     ht: Optional[Callable] = None,
     h_functional: Optional[Callable] = None,
@@ -408,7 +417,7 @@ def make_cost_functional_piezoelectricity(
     @numba.njit()
     def contact_cost_functional(u_vector, nodes, contact_boundary, contact_normals, temp_vector):
         cost = 0
-        offset = len(u_vector) // DIMENSION
+        offset = len(u_vector) // dimension
 
         for ei, edge in enumerate(contact_boundary):
             n_id_0 = edge[0]
@@ -417,7 +426,7 @@ def make_cost_functional_piezoelectricity(
             n_1 = nodes[n_id_1]
 
             # ASSUMING `u_vector` and `nodes` have the same order!
-            um = interpolate_node_between(n_id_0, n_id_1, u_vector)
+            um = interpolate_node_between(n_id_0, n_id_1, u_vector, dimension=2)
             temp_m = interpolate_node_between(n_id_0, n_id_1, temp_vector, dimension=1)
 
             normal_vector = contact_normals[ei]

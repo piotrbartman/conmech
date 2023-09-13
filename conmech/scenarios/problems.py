@@ -32,6 +32,25 @@ class ContactLaw:
         raise NotImplementedError()
 
 
+class DummyContactLaw(ContactLaw):
+    """
+    No foundation response.
+    """
+    @staticmethod
+    def potential_normal_direction(u_nu: float) -> float:
+        return 0
+
+    @staticmethod
+    def subderivative_normal_direction(u_nu: float, v_nu: float) -> float:
+        return 0
+
+    @staticmethod
+    def regularized_subderivative_tangential_direction(
+            u_tau: np.ndarray, v_tau: np.ndarray, rho=1e-7
+    ) -> float:
+        return 0
+
+
 @dataclass
 class Problem(ABC):
     # pylint: disable=unused-argument

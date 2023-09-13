@@ -18,6 +18,7 @@ class Validator:
             self.rhs = make_equation(None, None, None)
         else:
             self.rhs = make_equation(
+                dimension=solver.body.mesh.dimension,
                 jn=solver.contact_law.subderivative_normal_direction,
                 jt=solver.contact_law.regularized_subderivative_tangential_direction,
                 h_functional=solver.friction_bound,

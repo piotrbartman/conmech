@@ -43,6 +43,7 @@ class Optimization(Solver):
         )
         if statement.dimension == 2:  # TODO
             self.loss = make_cost_functional(
+                statement.dimension,
                 jn=contact_law.potential_normal_direction,
                 jt=contact_law.potential_tangential_direction
                 if hasattr(contact_law, "potential_tangential_direction")
@@ -51,6 +52,7 @@ class Optimization(Solver):
             )
         elif statement.dimension == 3:  # TODO
             self.loss = make_cost_functional_3d(
+                statement.dimension,
                 jn=contact_law.potential_normal_direction,
                 jt=contact_law.potential_tangential_direction
                 if hasattr(contact_law, "potential_tangential_direction")
@@ -59,6 +61,7 @@ class Optimization(Solver):
             )
         elif isinstance(statement, TemperatureStatement):
             self.loss = make_cost_functional_temperature(
+                dimension=statement.dimension,
                 h_functional=contact_law.h_temp,
                 hn=contact_law.h_nu,
                 ht=contact_law.h_tau,
@@ -66,12 +69,14 @@ class Optimization(Solver):
             )
         elif isinstance(statement, PiezoelectricStatement):
             self.loss = make_cost_functional_piezoelectricity(
+                dimension=statement.dimension,
                 h_functional=contact_law.h_temp,
                 hn=contact_law.h_nu,
                 ht=contact_law.h_tau,
             )
         elif isinstance(statement, StaticPoissonStatement):
             self.loss = make_cost_functional_poisson(
+                dimension=statement.dimension,
                 jn=contact_law.potential_normal_direction,
             )
         else:

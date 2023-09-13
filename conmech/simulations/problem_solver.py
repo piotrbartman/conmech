@@ -116,6 +116,12 @@ class ProblemSolver:
 
     @solving_method.setter
     def solving_method(self, value: str) -> None:
+        if value.lower() == "auto":
+            if self.body.mesh.contact_nodes_count > 0:
+                value = "schur"
+            else:
+                value = "global"
+
         self.__set_step_solver(value)
         self.__set_second_step_solver(value)
 
@@ -331,7 +337,7 @@ class PoissonSolver(ProblemSolver):
         """Solves Poisson problem and saves solution as temperature state.
 
         :param problem:
-        :param solving_method: 'schur', 'optimization', 'direct'
+        :param solving_method: 'auto', 'schur', 'optimization', 'direct'
         """
         body_prop = BodyProperties(
             mass_density=1.0,
@@ -361,7 +367,7 @@ class StaticSolver(ProblemSolver):
         """Solves general Contact Mechanics problem.
 
         :param problem:
-        :param solving_method: 'schur', 'optimization', 'direct'
+        :param solving_method: 'auto', 'schur', 'optimization', 'direct'
         """
         body_prop = ElasticProperties(
             mass_density=1.0,
@@ -405,7 +411,7 @@ class QuasistaticRelaxation(ProblemSolver):
         """Solves general Contact Mechanics problem.
 
         :param setup:
-        :param solving_method: 'schur', 'optimization', 'direct'
+        :param solving_method: 'auto', 'schur', 'optimization', 'direct'
         """
         body_prop = ElasticRelaxationProperties(
             mass_density=1.0,
@@ -472,7 +478,7 @@ class TimeDependentSolver(ProblemSolver):
         """Solves general Contact Mechanics problem.
 
         :param problem:
-        :param solving_method: 'schur', 'optimization', 'direct'
+        :param solving_method: 'auto', 'schur', 'optimization', 'direct'
         """
         body_prop = ViscoelasticProperties(
             mass_density=1.0,
@@ -540,7 +546,7 @@ class TemperatureTimeDependentSolver(ProblemSolver):
         """Solves general Contact Mechanics problem.
 
         :param problem:
-        :param solving_method: 'schur', 'optimization', 'direct'
+        :param solving_method: 'auto', 'schur', 'optimization', 'direct'
         """
 
         body_prop = ViscoelasticTemperatureProperties(
@@ -636,7 +642,7 @@ class PiezoelectricTimeDependentSolver(ProblemSolver):
     def __init__(self, problem: PiezoelectricTimeDependentProblem, solving_method: str):
         """Solves general Contact Mechanics problem.
 
-        :param solving_method: 'schur', 'optimization', 'direct'
+        :param solving_method: 'auto', 'schur', 'optimization', 'direct'
         """
         body_prop = ViscoelasticPiezoelectricProperties(
             mass_density=0.1,
