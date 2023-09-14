@@ -242,7 +242,7 @@ def draw_convergence(config, alphas, ihs):
 
 
 if __name__ == "__main__":
-    main(Config(outputs_path="output/BOT2023", force=False).init())
+    main(Config(outputs_path="output/BOT2023", force=True).init())
 
     "PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
 
