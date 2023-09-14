@@ -20,6 +20,7 @@ import pickle
 from dataclasses import dataclass
 from typing import Optional, Type
 
+import matplotlib.pyplot as plt
 import numba
 import numpy as np
 from conmech.helpers.config import Config
@@ -101,7 +102,7 @@ class StaticPoissonSetup(PoissonProblem):
     boundaries: ... = BoundariesDescription(
         dirichlet=(
             lambda x: x[1] == 1.0,
-            lambda x: np.full(x.shape[0], 5),
+            lambda x: np.full(x.shape[0], 0),
         ),
         contact=lambda x: x[1] == 0.0
     )
@@ -113,10 +114,10 @@ def main(config: Config):
 
     To see result of simulation you need to call from python `main(Config().init())`.
     """
-    alphas = [1e-2, 1e-1, 1, 1e1, 1e3, 1e4, 1e6, np.inf]
+    alphas = [1e-2, 1, 1e1, 1e3, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
-    alphas = alphas[:]
-    ihs = ihs[:4]  # TODO
+    alphas = alphas[-1:]
+    ihs = ihs[:5]  # TODO
 
     for ih in ihs:
         for alpha in alphas:
@@ -212,24 +213,36 @@ def convergence(config, alphas, ihs):
         ) as output:
             pickle.dump(cvgs, output)
 
+def plot_helper(X, Y, title, xlabel):
+    plt.plot(X, Y)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(r"error")
+    plt.grid()
+    plt.semilogx()
+    plt.show()
 
 def draw_convergence(config, alphas, ihs):
     with open(f"{config.outputs_path}/convergences", "rb") as file:
         cvgs = pickle.load(file)
-    hn_ac = [cvgs["hn_ac"][(ihs[0], alpha)] for alpha in alphas]
-    hx_ac = [cvgs["hx_ac"][(ihs[-1], alpha)] for alpha in alphas]
-    hc_an = [cvgs["hc_an"][(ih, alphas[0])] for ih in ihs]
-    hc_ax = [cvgs["hc_ax"][(ih, alphas[-1])] for ih in ihs]
-    hc_ac = [cvgs["hc_ac"][(ihs[i], alphas[i])] for i in range(len(ihs))]
-    print(hn_ac)
-    print(hx_ac)
-    print(hc_an)
-    print(hc_ax)
-    print(hc_ac)
+    convs = {
+        "L4": [cvgs["hn_ac"][(ihs[0], alpha)] for alpha in alphas],
+        "L2": [cvgs["hx_ac"][(ihs[-1], alpha)] for alpha in alphas],
+        "L3": [cvgs["hc_an"][(ih, alphas[0])] for ih in ihs],
+        "L1": [cvgs["hc_ax"][(ih, alphas[-1])] for ih in ihs],
+        "L5": [cvgs["hc_ac"][(ihs[i], alphas[i])] for i in range(len(ihs))]
+    }
+
+    plot_helper(ihs[:-1], convs["L1"][:-1], "L1", r"$h$")
+    plot_helper(alphas[:-1], convs["L2"][:-1], "L2", r"$\alpha$")
+    plot_helper(ihs[:-1], convs["L3"][:-1], "L3", r"$h$")
+    plot_helper(alphas[:-1], convs["L4"][:-1], "L4", r"$\alpha$")
+    # plot_helper(alphas[:-1], convs["L5"][:-1], "L5", r"$(h, \alpha)$")
+
 
 
 if __name__ == "__main__":
-    main(Config(outputs_path="./output/BOT2023", force=False).init())
+    main(Config(outputs_path="output/BOT2023", force=False).init())
 
     "PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
 
