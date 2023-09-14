@@ -181,9 +181,9 @@ def draw(config, alpha, ih):
     drawer.field_name = "temperature"
     drawer.original_mesh_color = None
     drawer.deformed_mesh_color = None
-    # drawer.draw(
-    #     show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
-    # )
+    drawer.draw(
+        show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
+    )
 
 
 def convergence(config, alphas, ihs):
