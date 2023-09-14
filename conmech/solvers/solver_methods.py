@@ -55,7 +55,7 @@ def make_equation(
     # TODO Make it prettier
     if jn is None:
 
-        # @numba.njit
+        @numba.njit
         def equation(u_vector: np.ndarray, _, __, lhs: np.ndarray, rhs: np.ndarray) -> np.ndarray:
             result = np.dot(lhs, u_vector) - rhs
             return result
@@ -65,7 +65,7 @@ def make_equation(
         jt = numba.njit(jt)
         h_functional = numba.njit(h_functional)
 
-        # @numba.njit()
+        @numba.njit()
         def contact_part(u_vector, nodes, contact_boundary, contact_normals):
             contact_vector = np.zeros_like(u_vector)
             offset = len(u_vector) // dimension
@@ -115,7 +115,7 @@ def make_equation(
 
             return contact_vector
 
-        # @numba.njit
+        @numba.njit
         def equation(
             u_vector: np.ndarray,
             vertices: np.ndarray,
@@ -124,7 +124,7 @@ def make_equation(
             lhs: np.ndarray,
             rhs: np.ndarray,
         ) -> np.ndarray:
-            c_part = contact_part(u_vector, vertices, contact_boundary, contact_normals)
+            c_part = 0 #contact_part(u_vector, vertices, contact_boundary, contact_normals)
             result = np.dot(lhs, u_vector) + c_part - rhs
             return result
 
