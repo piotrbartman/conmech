@@ -120,7 +120,7 @@ class ProblemSolver:
             if self.body.mesh.contact_nodes_count > 0:
                 value = "schur"
             else:
-                value = "global"
+                value = "direct"
 
         self.__set_step_solver(value)
         self.__set_second_step_solver(value)
