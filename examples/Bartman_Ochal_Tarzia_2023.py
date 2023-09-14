@@ -113,7 +113,7 @@ def main(config: Config):
 
     To see result of simulation you need to call from python `main(Config().init())`.
     """
-    alphas = [1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, np.inf]
+    alphas = [1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
     alphas = alphas[:]
     ihs = ihs[0:5]  # TODO
