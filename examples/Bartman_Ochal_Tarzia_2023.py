@@ -137,12 +137,12 @@ def main(config: Config):
 
 
 def _set_alpha(setup, alpha):
-    setup.contact_law = make_slope_contact_law(alpha=alpha, b=-5, example="13")
+    setup.contact_law = make_slope_contact_law(alpha=alpha, b=0, example="13")
     if alpha == np.inf:
         setup.boundaries = BoundariesDescription(
             dirichlet=(
                 lambda x: x[1] == 1.0 or x[1] == 0.0,
-                lambda x: np.full(x.shape[0], 5),
+                lambda x: np.full(x.shape[0], 0),
             ),
         )
 
@@ -231,5 +231,5 @@ def draw_convergence(config, alphas, ihs):
 if __name__ == "__main__":
     main(Config(outputs_path="./output/BOT2023", force=True).init())
 
-    "cd ~/devel/conmech && git pull; PYTHONPATH=/home/prb/devel/conmech git venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
+    "cd ~/devel/conmech && git pull; PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
 
