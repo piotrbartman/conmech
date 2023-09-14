@@ -113,10 +113,10 @@ def main(config: Config):
 
     To see result of simulation you need to call from python `main(Config().init())`.
     """
-    alphas = [1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, np.inf]
+    alphas = [1e-2, 1e-1, 1, 1e1, 1e3, 1e4, 1e6, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
     alphas = alphas[:]
-    ihs = ihs[0:5]  # TODO
+    ihs = ihs[5:6]  # TODO
 
     for ih in ihs:
         for alpha in alphas:
@@ -229,7 +229,7 @@ def draw_convergence(config, alphas, ihs):
 
 
 if __name__ == "__main__":
-    main(Config(outputs_path="./output/BOT2023", force=True).init())
+    main(Config(outputs_path="./output/BOT2023", force=False).init())
 
-    "cd ~/devel/conmech && git pull; PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
+    "PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
 
