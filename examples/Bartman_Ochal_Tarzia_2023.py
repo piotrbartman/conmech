@@ -116,7 +116,7 @@ def main(config: Config):
     alphas = [1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
     alphas = alphas[:]
-    ihs = ihs[0:4]  # TODO
+    ihs = ihs[0:5]  # TODO
 
     for ih in ihs:
         for alpha in alphas:
@@ -231,5 +231,5 @@ def draw_convergence(config, alphas, ihs):
 if __name__ == "__main__":
     main(Config(outputs_path="./output/BOT2023", force=True).init())
 
-    "cd ~/devel/conmech && git pull; PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
+    "cd ~/devel/conmech && git pull; PYTHONPATH=/home/prb/devel/conmech git venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
 
