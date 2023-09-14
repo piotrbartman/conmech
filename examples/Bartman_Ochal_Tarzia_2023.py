@@ -116,7 +116,7 @@ def main(config: Config):
     alphas = [1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
     alphas = alphas[:]
-    ihs = ihs[0:1]  # TODO
+    ihs = ihs[0:4]  # TODO
 
     for ih in ihs:
         for alpha in alphas:
@@ -127,7 +127,13 @@ def main(config: Config):
             except FileNotFoundError:
                 simulate(config, alpha, ih)
                 draw(config, alpha, ih)
-    convergence(config, alphas, ihs)
+    try:
+        if config.force:
+            convergence(config, alphas, ihs)
+        draw_convergence(config, alphas, ihs)
+    except (FileNotFoundError, KeyError):
+        convergence(config, alphas, ihs)
+        draw_convergence(config, alphas, ihs)
 
 
 def _set_alpha(setup, alpha):
@@ -150,7 +156,7 @@ def simulate(config, alpha, ih=None, alpha_setter=_set_alpha, setup=None):
 
     runner = PoissonSolver(setup, solving_method="auto")
 
-    state = runner.solve(verbose=True, disp=True, method="POWELL")
+    state = runner.solve(verbose=True, disp=True, method="BFGS")
 
     if config.outputs_path:
         with open(
@@ -175,21 +181,22 @@ def draw(config, alpha, ih):
     drawer.field_name = "temperature"
     drawer.original_mesh_color = None
     drawer.deformed_mesh_color = None
-    drawer.draw(
-        show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
-    )
+    # drawer.draw(
+    #     show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
+    # )
 
 
 def convergence(config, alphas, ihs):
     cvgs = {
-        "hn_ac": [(ihs[0], a) for a in alphas],
-        "hx_ac": [(ihs[-1], a) for a in alphas],
-        "hc_an": [(ih, alphas[0]) for ih in ihs],
-        "hc_ax": [(ih, alphas[-1]) for ih in ihs],
-        "hx_ax": [(ihs[i], alphas[i]) for i in range(len(ihs))]
+        "hn_ac": {(ihs[0], a): None for a in alphas},
+        "hx_ac": {(ihs[-1], a): None for a in alphas},
+        "hc_an": {(ih, alphas[0]): None for ih in ihs},
+        "hc_ax": {(ih, alphas[-1]): None for ih in ihs},
+        "hc_ac": {(ihs[i], alphas[i]): None for i in range(len(ihs))}
     }
 
-    for cvg, params in cvgs.items():
+    for cvg, map_ in cvgs.items():
+        params = list(map_.keys())
         ih = params[-1][0]
         alpha = params[-1][1]
         with open(f"{config.outputs_path}/alpha_{alpha}_ih_{ih}", "rb") as output:
@@ -197,7 +204,28 @@ def convergence(config, alphas, ihs):
         for ih, alpha in params[:-1]:
             with open(f"{config.outputs_path}/alpha_{alpha}_ih_{ih}", "rb") as output:
                 sol = pickle.load(output)
-            print(cvg, compare(ref, sol))
+            cvgs[cvg][(ih, alpha)] = compare(ref, sol)
+    if config.outputs_path:
+        with open(
+            f"{config.outputs_path}/convergences",
+            "wb+",
+        ) as output:
+            pickle.dump(cvgs, output)
+
+
+def draw_convergence(config, alphas, ihs):
+    with open(f"{config.outputs_path}/convergences", "rb") as file:
+        cvgs = pickle.load(file)
+    hn_ac = [cvgs["hn_ac"][(ihs[0], alpha)] for alpha in alphas]
+    hx_ac = [cvgs["hx_ac"][(ihs[-1], alpha)] for alpha in alphas]
+    hc_an = [cvgs["hc_an"][(ih, alphas[0])] for ih in ihs]
+    hc_ax = [cvgs["hc_ax"][(ih, alphas[-1])] for ih in ihs]
+    hc_ac = [cvgs["hc_ac"][(ihs[i], alphas[i])] for i in range(len(ihs))]
+    print(hn_ac)
+    print(hx_ac)
+    print(hc_an)
+    print(hc_ax)
+    print(hc_ac)
 
 
 if __name__ == "__main__":

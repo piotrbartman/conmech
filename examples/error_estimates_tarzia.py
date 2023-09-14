@@ -13,7 +13,6 @@ from conmech.state.state import TemperatureState
 
 
 def compare(ref: TemperatureState, sol: TemperatureState):
-    ut = 0
     tt = 0
     x = sol.body.mesh.initial_nodes[:, 0]
     y = sol.body.mesh.initial_nodes[:, 1]
@@ -38,7 +37,7 @@ def compare(ref: TemperatureState, sol: TemperatureState):
 
         th = thi(*x0) + thi(*x1) + thi(*x2)
         tt += ((t - th) ** 2 + (tdx - thdx) ** 2 + (tdy - thdy) ** 2) ** 0.5
-    return ut, tt
+    return tt
 
 
 @numba.njit()
