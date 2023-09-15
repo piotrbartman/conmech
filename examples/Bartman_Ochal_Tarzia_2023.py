@@ -116,7 +116,7 @@ def main(config: Config):
     """
     alphas = [1e-2, 1, 1e1, 1e3, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
-    alphas = alphas[-1:]
+    alphas = alphas[:-1]
     ihs = ihs[:5]  # TODO
 
     for ih in ihs:
@@ -138,7 +138,7 @@ def main(config: Config):
 
 
 def _set_alpha(setup, alpha):
-    setup.contact_law = make_slope_contact_law(alpha=alpha, b=0, example="13")
+    setup.contact_law = make_slope_contact_law(alpha=alpha, b=0, example="11")
     if alpha == np.inf:
         setup.boundaries = BoundariesDescription(
             dirichlet=(
@@ -175,16 +175,16 @@ def simulate(config, alpha, ih=None, alpha_setter=_set_alpha, setup=None):
 def draw(config, alpha, ih):
     with open(f"{config.outputs_path}/alpha_{alpha}_ih_{ih}", "rb") as output:
         state = pickle.load(output)
-    max_ = max(max(state.temperature), 1)
-    min_ = min(min(state.temperature), 0)
+    max_ = max(max(state.temperature), 0.5)
+    min_ = min(min(state.temperature), -0.5)
     drawer = Drawer(state=state, config=config)
     drawer.cmap = "plasma"
     drawer.field_name = "temperature"
     drawer.original_mesh_color = None
     drawer.deformed_mesh_color = None
-    drawer.draw(
-        show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
-    )
+    # drawer.draw(
+    #     show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
+    # )
 
 
 def convergence(config, alphas, ihs):
@@ -193,7 +193,7 @@ def convergence(config, alphas, ihs):
         "hx_ac": {(ihs[-1], a): None for a in alphas},
         "hc_an": {(ih, alphas[0]): None for ih in ihs},
         "hc_ax": {(ih, alphas[-1]): None for ih in ihs},
-        "hc_ac": {(ihs[i], alphas[i]): None for i in range(len(ihs))}
+        "hc_ac": {(ihs[i], alphas[0]): None for i in range(len(ihs))}  # TODO alphas[0]
     }
 
     for cvg, map_ in cvgs.items():
@@ -230,14 +230,14 @@ def draw_convergence(config, alphas, ihs):
         "L2": [cvgs["hx_ac"][(ihs[-1], alpha)] for alpha in alphas],
         "L3": [cvgs["hc_an"][(ih, alphas[0])] for ih in ihs],
         "L1": [cvgs["hc_ax"][(ih, alphas[-1])] for ih in ihs],
-        "L5": [cvgs["hc_ac"][(ihs[i], alphas[i])] for i in range(len(ihs))]
+        "L5": [cvgs["hc_ac"][(ihs[i], alphas[0])] for i in range(len(ihs))]  # TODO alphas[0]
     }
 
     plot_helper(ihs[:-1], convs["L1"][:-1], "L1", r"$h$")
     plot_helper(alphas[:-1], convs["L2"][:-1], "L2", r"$\alpha$")
     plot_helper(ihs[:-1], convs["L3"][:-1], "L3", r"$h$")
     plot_helper(alphas[:-1], convs["L4"][:-1], "L4", r"$\alpha$")
-    # plot_helper(alphas[:-1], convs["L5"][:-1], "L5", r"$(h, \alpha)$")
+    plot_helper(ihs[:-1], convs["L5"][:-1], "L5", r"$(h, \alpha)$")
 
 
 
