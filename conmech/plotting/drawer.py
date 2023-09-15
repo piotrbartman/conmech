@@ -76,7 +76,7 @@ class Drawer:
         # plt.axis("on")
         # axes.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         #
-        # axes.set_aspect("equal", adjustable="box")
+        axes.set_aspect("equal", adjustable="box")
         if title is not None:
             plt.title(title)
 
@@ -282,18 +282,18 @@ class Drawer:
         y = self.state.displaced_nodes[:, 1]
 
         n_layers = 100
-        axes.tricontour(x, y, self.mesh.elements, field, 15, colors="k", linewidths=0.2)
+        axes.tricontour(x, y, self.mesh.elements, field, 15, colors="k", linewidths=1)
         if self.colorful:
-            axes.tricontourf(
-                x,
-                y,
-                self.mesh.elements,
-                field,
-                n_layers,
-                cmap=self.cmap,
-                vmin=v_min,
-                vmax=v_max,
-            )
+        #     axes.tricontourf(
+        #         x,
+        #         y,
+        #         self.mesh.elements,
+        #         field,
+        #         n_layers,
+        #         cmap=self.cmap,
+        #         vmin=v_min,
+        #         vmax=v_max,
+        #     )
 
             # cbar_ax = fig.add_axes([0.875, 0.15, 0.025, 0.6])
             # ax_pos = axes.get_position()
@@ -306,4 +306,4 @@ class Drawer:
             # cax = divider.append_axes("bottom", size="5%", pad=0.15)
             sm = plt.cm.ScalarMappable(cmap=self.cmap, norm=plt.Normalize(vmin=v_min, vmax=v_max))
             sm.set_array([])
-            fig.colorbar(sm, orientation="horizontal", label=self.field_label, ax=axes)
+            # fig.colorbar(sm, orientation="horizontal", label=self.field_label, ax=axes)

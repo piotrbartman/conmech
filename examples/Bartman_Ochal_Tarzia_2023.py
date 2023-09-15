@@ -116,7 +116,7 @@ def main(config: Config):
     """
     alphas = [1e-2, 1, 1e1, 1e3, 1e4, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
-    alphas = alphas[-2:-1]
+    alphas = alphas[:]
     ihs = ihs[:5]  # TODO
 
     for ih in ihs:
@@ -129,6 +129,7 @@ def main(config: Config):
                 simulate(config, alpha, ih)
                 draw(config, alpha, ih)
     try:
+        print("Here")
         if config.force:
             convergence(config, alphas, ihs)
         draw_convergence(config, alphas, ihs)
@@ -184,12 +185,13 @@ def draw(config, alpha, ih):
     drawer.field_name = "temperature"
     drawer.original_mesh_color = None
     drawer.deformed_mesh_color = None
+    drawer.node_size = 0
     drawer.draw(
         show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
     )
 
 
-def convergence(config, alphas, ihs):
+def     convergence(config, alphas, ihs):
     cvgs = {
         "hn_ac": {(ihs[0], a): None for a in alphas},
         "hx_ac": {(ihs[-1], a): None for a in alphas},
@@ -267,11 +269,39 @@ def example_11_plot():
     plt.show()
 
 
+def example_14_plot():
+    b = 0
+    m1 = -2
+    r0 = 1
+    m2 = 2
+    X = np.linspace(m1 - 1, m2 + 1, num=1000)
+
+    def dj(r):
+        if r < b - r0:
+            return m1
+        if r > b + r0:
+            return m2
+        return r - b
+
+    Y = np.empty_like(X)
+    for i, x in enumerate(X):
+        Y[i] = dj(x)
+    plt.plot(X, Y)
+    plt.plot(X, X * 0, color="black")
+    plt.title("EXAMPLE 14: $b=0$")
+    plt.xlabel("$r$")
+    plt.ylabel(r"$\partial j(r)$")
+    plt.grid()
+    # plt.semilogx()
+    plt.show()
+
+
 if __name__ == "__main__":
-    config = Config(outputs_path="output/BOT2023", force=True, show=False).init()
+    config = Config(outputs_path="output/BOT2023", force=False, show=True).init()
     main(config)
 
     if config.show:
         example_11_plot()
+        example_14_plot()
 
     "PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
