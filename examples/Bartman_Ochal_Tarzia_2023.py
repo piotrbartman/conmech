@@ -116,7 +116,7 @@ def main(config: Config):
     """
     alphas = [1e-2, 1, 1e1, 1e3, 1e4, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
-    alphas = alphas[:-1]
+    alphas = alphas[-2:-1]
     ihs = ihs[:5]  # TODO
 
     for ih in ihs:
