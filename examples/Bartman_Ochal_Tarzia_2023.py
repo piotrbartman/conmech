@@ -114,7 +114,7 @@ def main(config: Config):
 
     To see result of simulation you need to call from python `main(Config().init())`.
     """
-    alphas = [1e-2, 1, 1e1, 1e3, np.inf]
+    alphas = [1e-2, 1, 1e1, 1e3, 1e4, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
     alphas = alphas[:-1]
     ihs = ihs[:5]  # TODO
@@ -175,6 +175,8 @@ def simulate(config, alpha, ih=None, alpha_setter=_set_alpha, setup=None):
 def draw(config, alpha, ih):
     with open(f"{config.outputs_path}/alpha_{alpha}_ih_{ih}", "rb") as output:
         state = pickle.load(output)
+    if not config.show:
+        return
     max_ = max(max(state.temperature), 0.5)
     min_ = min(min(state.temperature), -0.5)
     drawer = Drawer(state=state, config=config)
@@ -182,9 +184,9 @@ def draw(config, alpha, ih):
     drawer.field_name = "temperature"
     drawer.original_mesh_color = None
     drawer.deformed_mesh_color = None
-    # drawer.draw(
-    #     show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
-    # )
+    drawer.draw(
+        show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_
+    )
 
 
 def convergence(config, alphas, ihs):
@@ -225,6 +227,8 @@ def plot_helper(X, Y, title, xlabel):
 def draw_convergence(config, alphas, ihs):
     with open(f"{config.outputs_path}/convergences", "rb") as file:
         cvgs = pickle.load(file)
+    if not config.show:
+        return
     convs = {
         "L4": [cvgs["hn_ac"][(ihs[0], alpha)] for alpha in alphas],
         "L2": [cvgs["hx_ac"][(ihs[-1], alpha)] for alpha in alphas],
@@ -240,9 +244,34 @@ def draw_convergence(config, alphas, ihs):
     plot_helper(ihs[:-1], convs["L5"][:-1], "L5", r"$(h, \alpha)$")
 
 
+def example_11_plot():
+    b = 0
+    X = np.linspace(b - 1, b + 1, num=1000)
+
+    def dj(r):
+        if r < b:
+            return 2 * (r - b)
+        else:
+            return np.exp(-(r - b))
+
+    Y = np.empty_like(X)
+    for i, x in enumerate(X):
+        Y[i] = dj(x)
+    plt.plot(X, Y)
+    plt.plot(X, X * 0, color="black")
+    plt.title("EXAMPLE 11: $b=0$")
+    plt.xlabel("$r$")
+    plt.ylabel(r"$\partial j(r)$")
+    plt.grid()
+    # plt.semilogx()
+    plt.show()
+
 
 if __name__ == "__main__":
-    main(Config(outputs_path="output/BOT2023", force=True).init())
+    config = Config(outputs_path="output/BOT2023", force=True, show=False).init()
+    main(config)
+
+    if config.show:
+        example_11_plot()
 
     "PYTHONPATH=/home/prb/devel/conmech venv/bin/python3.11 examples/Bartman_Ochal_Tarzia_2023.py &"
-
