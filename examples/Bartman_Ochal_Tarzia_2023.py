@@ -101,7 +101,7 @@ class StaticPoissonSetup(PoissonProblem):
 
     boundaries: ... = BoundariesDescription(
         dirichlet=(
-            lambda x: x[1] == 1.0,
+            lambda x: x[1] == 1.0 or x[0] == 2.0,
             lambda x: np.full(x.shape[0], 0),
         ),
         contact=lambda x: x[1] == 0.0
@@ -117,7 +117,7 @@ def main(config: Config):
     alphas = [1e-2, 1, 1e1, 1e3, 1e4, np.inf]
     ihs = [4, 8, 16, 32, 64, 128, 256]
     alphas = alphas[:]
-    ihs = ihs[:5]  # TODO
+    ihs = ihs[:1]  # TODO
 
     for ih in ihs:
         for alpha in alphas:
@@ -143,7 +143,7 @@ def _set_alpha(setup, alpha):
     if alpha == np.inf:
         setup.boundaries = BoundariesDescription(
             dirichlet=(
-                lambda x: x[1] == 1.0 or x[1] == 0.0,
+                lambda x: x[1] == 1.0 or x[1] == 0.0 or x[0] == 2.0,
                 lambda x: np.full(x.shape[0], 0),
             ),
         )
@@ -297,7 +297,7 @@ def example_14_plot():
 
 
 if __name__ == "__main__":
-    config = Config(outputs_path="output/BOT2023", force=False, show=True).init()
+    config = Config(outputs_path="output/BOT2023", force=True, show=True).init()
     main(config)
 
     if config.show:

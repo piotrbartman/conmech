@@ -284,16 +284,16 @@ class Drawer:
         n_layers = 100
         axes.tricontour(x, y, self.mesh.elements, field, 15, colors="k", linewidths=1)
         if self.colorful:
-        #     axes.tricontourf(
-        #         x,
-        #         y,
-        #         self.mesh.elements,
-        #         field,
-        #         n_layers,
-        #         cmap=self.cmap,
-        #         vmin=v_min,
-        #         vmax=v_max,
-        #     )
+            axes.tricontourf(
+                x,
+                y,
+                self.mesh.elements,
+                field,
+                n_layers,
+                cmap=self.cmap,
+                vmin=v_min,
+                vmax=v_max,
+            )
 
             # cbar_ax = fig.add_axes([0.875, 0.15, 0.025, 0.6])
             # ax_pos = axes.get_position()
