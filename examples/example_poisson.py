@@ -13,23 +13,22 @@ from conmech.properties.mesh_description import CrossMeshDescription
 @dataclass()
 class StaticPoissonSetup(PoissonProblem):
     @staticmethod
-    def internal_temperature(x: np.ndarray, t: Optional[float] = None) -> np.ndarray:
-        if 0.4 <= x[0] <= 0.6 and 0.4 <= x[1] <= 0.6:
-            return np.array([-10.0])
-        return np.array([2 * np.pi**2 * np.sin(np.pi * x[0]) * np.sin(np.pi * x[1])])
+    def internal_temperature(x: np.ndarray, u, t: Optional[float] = None) -> np.ndarray:
+        return np.array([(x[0]-0.5)**2 * 10])
+        # return np.array([0.0]) #np.array([2 * np.pi**2 * np.sin(np.pi * x[0]) * np.sin(np.pi * x[1])])
 
     @staticmethod
     def outer_temperature(
         x: np.ndarray, v: Optional[np.ndarray] = None, t: Optional[float] = None
     ) -> np.ndarray:
-        if x[0] == 1:
-            return np.array([10.0])
+        # if x[0] == 1:
+        #     return np.array([10.0])
         return np.array([0.0])
 
     boundaries: ... = BoundariesDescription(
         dirichlet=(
-            lambda x: x[1] == 0 or x[0] == 0 or x[1] == 1,
-            lambda x: np.full(x.shape[0], 0),
+            lambda x: x[0] == 0 or x[0] == 1,
+            lambda x: np.full(x.shape[0], 0.5) * x[:, 0] + 0.5,
         )
     )
 
@@ -51,6 +50,8 @@ def main(config: Config):
     min_ = min(min(state.temperature), 0)
     drawer = Drawer(state=state, config=config)
     drawer.cmap = "plasma"
+    drawer.original_mesh_color = None
+    drawer.deformed_mesh_color = None
     drawer.field_name = "temperature"
     drawer.draw(
         show=config.show, save=config.save, foundation=False, field_max=max_, field_min=min_

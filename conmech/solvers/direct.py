@@ -65,5 +65,6 @@ class Direct(Solver):
                 ),
             )
         else:
+            print("Here")
             result = np.linalg.solve(self.node_relations, self.node_forces)
         return np.asarray(result)

@@ -69,9 +69,15 @@ class StaticPoissonStatement(Statement):
 
     def update_left_hand_side(self, var: Variables):
         self.left_hand_side = self.body.dynamics.poisson_operator.copy()
+        np.fill_diagonal(
+            self.left_hand_side,
+            self.left_hand_side.diagonal()
+            + self.body.dynamics.temperature.integrate(
+                var.temperature * 0, time=0)
+        )
 
     def update_right_hand_side(self, var: Variables):
-        self.right_hand_side = self.body.dynamics.temperature.integrate(time=0)
+        self.right_hand_side = self.body.dynamics.temperature.integrate(var.temperature * 0, time=0) * 0
 
 
 class StaticDisplacementStatement(Statement):

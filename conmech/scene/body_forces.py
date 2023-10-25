@@ -47,10 +47,10 @@ class FieldSource:
     cache: Optional[np.ndarray] = None
     timestamp: Optional[float] = None
 
-    def node_source(self, nodes, time: float):
+    def node_source(self, nodes, u, time: float):
         # pylint: disable=not-callable
         if time != self.timestamp:
-            self.cache = np.array([self.source(nodes[i], time) for i in range(len(nodes))])
+            self.cache = np.array([self.source(nodes[i], u[i], time) for i in range(len(nodes))])
             self.timestamp = time
         return self.cache
 
@@ -65,25 +65,25 @@ class BodyForces:
         self.inner.cache = None
         self.outer.cache = None
 
-    def get_integrated_inner_forces(self, time: float):
-        inner_forces = self.inner.node_source(self.body.mesh.nodes, time)
+    def get_integrated_inner_forces(self, u, time: float):
+        inner_forces = self.inner.node_source(self.body.mesh.nodes, u, time)
         # TODO: should be only on boundary!
         return self.body.dynamics.volume_at_nodes @ inner_forces
 
-    def get_integrated_outer_forces(self, time: float):
+    def get_integrated_outer_forces(self, u, time: float):
         neumann_surfaces = get_surface_per_boundary_node_numba(
             boundary_surfaces=self.body.mesh.neumann_boundary,
             considered_nodes_count=self.body.mesh.nodes_count,
             moved_nodes=self.body.mesh.nodes,
         )
-        outer_forces = self.outer.node_source(self.body.mesh.nodes, time)
+        outer_forces = self.outer.node_source(self.body.mesh.nodes, u, time)
         return neumann_surfaces * outer_forces
 
-    def get_integrated_field_sources_column(self, time: float):
-        integrated_inner_forces = self.get_integrated_inner_forces(time)
-        integrated_outer_forces = self.get_integrated_outer_forces(time)
+    def get_integrated_field_sources_column(self, u, time: float):
+        integrated_inner_forces = self.get_integrated_inner_forces(u, time)
+        integrated_outer_forces = self.get_integrated_outer_forces(u, time)
         integrated_forces = integrated_inner_forces + integrated_outer_forces
         return nph.stack_column(integrated_forces[:, :])
 
-    def integrate(self, time: float):
-        return self.get_integrated_field_sources_column(time).reshape(-1)
+    def integrate(self, u, time: float):
+        return self.get_integrated_field_sources_column(u, time).reshape(-1)
