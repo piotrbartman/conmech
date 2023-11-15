@@ -16,8 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
-
+import pickle
 from dataclasses import dataclass
+from typing import Iterable
 
 import numpy as np
 from conmech.helpers.config import Config
@@ -26,7 +27,6 @@ from conmech.plotting.drawer import Drawer
 from conmech.scenarios.problems import ContactLaw, StaticDisplacementProblem
 from conmech.simulations.problem_solver import StaticSolver as StaticProblemSolver
 from conmech.properties.mesh_description import (
-    CrossMeshDescription,
     BOST2023MeshDescription,
 )
 
@@ -38,11 +38,14 @@ class BOST23(ContactLaw):
     @staticmethod
     def potential_normal_direction(u_nu: float) -> float:
         u_nu -= GAP
+        # EXAMPLE 10
+        a = 0.1
+        b = 0.1
         if u_nu <= 0:
             return 0.0
-        if u_nu < 0.1:
-            return 10 * u_nu * u_nu
-        return 0.1
+        if u_nu < b:
+            return (a + np.exp(-b)) / (2 * b) * u_nu ** 2
+        return a * u_nu - np.exp(- u_nu) + ((b + 2) * np.exp(-b) - a * b) / 2
 
     @staticmethod
     def potential_tangential_direction(u_tau: np.ndarray) -> float:
@@ -89,33 +92,72 @@ class StaticSetup(StaticDisplacementProblem):
     )
 
 
-def main(config: Config):
+def main(config: Config, igs: Iterable[int]):
     """
     Entrypoint to example.
 
     To see result of simulation you need to call from python `main(Config().init())`.
     """
-    mesh_descr = BOST2023MeshDescription(
-        initial_position=None,
-        max_element_perimeter=1 / 8,
-    )
-    setup = StaticSetup(mesh_descr)
-    if config.test:
-        setup.elements_number = (2, 4)
-    runner = StaticProblemSolver(setup, "schur")
+    simulate = config.force
+    try:
+        for ig in igs:
+            with open(f"{config.outputs_path}/BOST_ig_{ig}", "rb") as output:
+                _ = pickle.load(output)
+    except IOError:
+        simulate = True
 
-    state = runner.solve(
-        verbose=True,
-        fixed_point_abs_tol=0.001,
-        initial_displacement=setup.initial_displacement,
-    )
-    state.displaced_nodes[:, 1] += GAP
-    state.body.mesh.nodes[:, 1] += GAP
-    drawer = Drawer(state=state, config=config)
-    drawer.colorful = False
-    drawer.outer_forces_scale = 1
-    drawer.draw(show=config.show, save=config.save)
+    if simulate:
+        print("Simulating...")
+        for ig in igs:
+            mesh_descr = BOST2023MeshDescription(
+                initial_position=None,
+                max_element_perimeter=1 / 32,
+            )
+            setup = StaticSetup(mesh_descr)
+
+            def potential_normal_direction(u_nu: float) -> float:
+                u_nu -= GAP
+                # EXAMPLE 10
+                a = 0.1
+                b = 0.1
+                if u_nu <= 0:
+                    result = 0.0
+                elif u_nu < b:
+                    result = (a + np.exp(-b)) / (2 * b) * u_nu ** 2
+                else:
+                    result = a * u_nu - np.exp(- u_nu) + ((b + 2) * np.exp(-b) - a * b) / 2
+                return ig * result
+
+            setup.contact_law.potential_normal_direction = potential_normal_direction
+            if config.test:
+                setup.elements_number = (2, 4)
+            runner = StaticProblemSolver(setup, "schur")
+
+            state = runner.solve(
+                verbose=True,
+                fixed_point_abs_tol=0.001,
+                initial_displacement=setup.initial_displacement,
+            )
+            with open(f"{config.outputs_path}/BOST_ig_{ig}", "wb+") as output:
+                pickle.dump(state, output)
+
+    print(f"Plotting {igs=}")
+    for ig in igs:
+        with open(f"{config.outputs_path}/BOST_ig_{ig}", "rb") as output:
+            state = pickle.load(output)
+
+        print(f"{ig=}")
+
+        state.displaced_nodes[:, 1] += GAP
+        state.body.mesh.nodes[:, 1] += GAP
+        drawer = Drawer(state=state, config=config)
+        drawer.colorful = False
+        drawer.outer_forces_scale = 1
+        drawer.draw(show=config.show, save=config.save)
+    print("Done")
+
 
 
 if __name__ == "__main__":
-    main(Config().init())
+    show = True
+    main(Config(save=not show, show=show, force=False).init(), [2**i for i in range(1, 20)])
