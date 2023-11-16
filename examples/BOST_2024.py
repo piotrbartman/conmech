@@ -49,7 +49,7 @@ class BOST23(ContactLaw):
 
     @staticmethod
     def potential_tangential_direction(u_tau: np.ndarray) -> float:
-        return np.log(np.sum(u_tau * u_tau) ** 0.5 + 1)
+        return np.sum(u_tau * u_tau) ** 0.5
 
     @staticmethod
     def subderivative_normal_direction(u_nu: float, v_nu: float) -> float:
@@ -83,9 +83,7 @@ class StaticSetup(StaticDisplacementProblem):
     def friction_bound(u_nu: float) -> float:
         if u_nu < 0:
             return 0
-        if u_nu < 0.1:
-            return 8 * u_nu
-        return 0.8
+        return u_nu
 
     boundaries: ... = BoundariesDescription(
         contact=lambda x: x[1] == 0, dirichlet=lambda x: x[0] == 0
@@ -139,6 +137,11 @@ def main(config: Config, igs: Iterable[int]):
                 initial_displacement=setup.initial_displacement,
             )
             with open(f"{config.outputs_path}/BOST_ig_{ig}", "wb+") as output:
+                state.body.dynamics.force.outer.source = None
+                state.body.dynamics.force.inner.source = None
+                state.body.properties.relaxation = None
+                state.setup = None
+                state.constitutive_law = None
                 pickle.dump(state, output)
 
     print(f"Plotting {igs=}")
@@ -160,4 +163,4 @@ def main(config: Config, igs: Iterable[int]):
 
 if __name__ == "__main__":
     show = True
-    main(Config(save=not show, show=show, force=False).init(), [2**i for i in range(1, 20)])
+    main(Config(save=not show, show=show, force=False).init(), [2**i for i in range(17)] + [2**32])
