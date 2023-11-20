@@ -86,7 +86,7 @@ class StaticSetup(StaticDisplacementProblem):
         return u_nu
 
     boundaries: ... = BoundariesDescription(
-        contact=lambda x: x[1] == 0, dirichlet=lambda x: x[0] == 0
+        contact=lambda x: x[1] <= 0.1, dirichlet=lambda x: x[0] == 0
     )
 
 
@@ -163,4 +163,7 @@ def main(config: Config, igs: Iterable[int]):
 
 if __name__ == "__main__":
     show = True
-    main(Config(save=not show, show=show, force=False).init(), [2**i for i in range(17)] + [2**32])
+    main(
+        Config(save=not show, show=show, force=False).init(),
+        [0] + [2**i for i in range(32)] + [2**64]
+    )
