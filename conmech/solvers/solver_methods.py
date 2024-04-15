@@ -25,14 +25,39 @@ def make_equation(
     jn: Optional[callable],
     jt: Optional[callable],
     h_functional: Optional[callable],
+    contact: Optional[callable] = None,
     problem_dimension=2,
 ) -> callable:
     # TODO Make it prettier
-    if jn is None:
+    if jn is None or contact is not None:
+        contact = njit(contact, value=0)
 
-        @numba.njit
-        def equation(u_vector: np.ndarray, _, __, lhs: np.ndarray, rhs: np.ndarray) -> np.ndarray:
-            result = np.dot(lhs, u_vector) - rhs
+        # @numba.njit
+        def equation(
+                var: np.ndarray,
+                _, __, ___,
+                lhs: np.ndarray,
+                rhs: np.ndarray,
+                displacement: np.ndarray,
+                volume_multiplier: np.ndarray,
+                time_step,
+        ) -> np.ndarray:
+            # ind = independent_indices.stop // 2
+            ind = lhs.shape[0]
+            response = np.zeros(ind)
+            # print(max(displacement), max(var))
+            for i in range(ind):
+                response[i] = contact(displacement[i] + var[i] * time_step, var[i])
+            # if max(response):
+            #     print(max(response))
+            # RHS = np.dot(np.dot(volume_multiplier, response), var[:ind]) / np.dot(rhs, var[:ind])
+            # if RHS:
+            #     print(">", RHS, end=", ")
+            # result = var.copy()
+            # result[:ind] = np.dot(lhs, var[:ind]) + np.dot(volume_multiplier, response) - rhs  # TODO: truncating vector
+            res = 0.5 * np.dot(np.dot(lhs, var[:ind]), var[:ind]) - np.dot(rhs, var[:ind]) + np.dot(np.dot(volume_multiplier, response), np.ones_like(var[:ind])) + np.dot(var[ind:], var[ind:].T)
+            # return result
+            result = np.asarray(res).ravel()
             return result
 
     else:
@@ -88,15 +113,16 @@ def make_equation(
 
         @numba.njit
         def equation(
-            u_vector: np.ndarray,
+            var: np.ndarray,
             vertices: np.ndarray,
             contact_boundary: np.ndarray,
             contact_normals: np.ndarray,
             lhs: np.ndarray,
             rhs: np.ndarray,
+            displacement: np.ndarray,
         ) -> np.ndarray:
-            c_part = contact_part(u_vector, vertices, contact_boundary, contact_normals)
-            result = np.dot(lhs, u_vector) + c_part - rhs
+            c_part = contact_part(var, vertices, contact_boundary, contact_normals)
+            result = np.dot(lhs, var) + c_part - rhs
             return result
 
     return equation
