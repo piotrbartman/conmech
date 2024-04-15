@@ -32,7 +32,7 @@ def make_equation(
     if jn is None or contact is not None:
         contact = njit(contact, value=0)
 
-        # @numba.njit
+        @numba.njit
         def equation(
                 var: np.ndarray,
                 _, __, ___,
@@ -55,7 +55,7 @@ def make_equation(
             #     print(">", RHS, end=", ")
             # result = var.copy()
             # result[:ind] = np.dot(lhs, var[:ind]) + np.dot(volume_multiplier, response) - rhs  # TODO: truncating vector
-            res = 0.5 * np.dot(np.dot(lhs, var[:ind]), var[:ind]) - np.dot(rhs, var[:ind]) + np.dot(np.dot(volume_multiplier, response), np.ones_like(var[:ind])) + np.dot(var[ind:], var[ind:].T)
+            res = 0.5 * np.dot(np.dot(lhs, var[:ind]), var[:ind]) - np.dot(rhs, var[:ind]) + 0.5 * np.dot(np.dot(volume_multiplier, response), var[:ind]) + np.dot(var[ind:], var[ind:].T)
             # return result
             result = np.asarray(res).ravel()
             return result
@@ -114,14 +114,17 @@ def make_equation(
         @numba.njit
         def equation(
             var: np.ndarray,
-            vertices: np.ndarray,
+            nodes: np.ndarray,
             contact_boundary: np.ndarray,
             contact_normals: np.ndarray,
             lhs: np.ndarray,
             rhs: np.ndarray,
             displacement: np.ndarray,
+            velocity: np.ndarray,
+            base_integrals,
+            time_step,
         ) -> np.ndarray:
-            c_part = contact_part(var, vertices, contact_boundary, contact_normals)
+            c_part = contact_part(var, nodes, contact_boundary, contact_normals)
             result = np.dot(lhs, var) + c_part - rhs
             return result
 
@@ -193,8 +196,63 @@ def make_cost_functional(
 
     # pylint: disable=unused-argument # 'dt'
     @numba.njit()
-    def cost_functional(var, nodes, contact_boundary, contact_normals, lhs, rhs, u_vector, dt):
+    def cost_functional(var, nodes, contact_boundary, contact_normals, lhs, rhs, u_vector, base_integrals, dt):
         ju = contact_cost_functional(var, u_vector, nodes, contact_boundary, contact_normals)
+        result = 0.5 * np.dot(np.dot(lhs, var), var) - np.dot(rhs, var) + ju
+        result = np.asarray(result).ravel()
+        return result
+
+    return cost_functional
+
+
+def make_cost_functional_2(
+    contact,
+    problem_dimension=2,
+    variable_dimension=2,
+):
+    contact = njit(contact, value=0)
+
+    @numba.njit()
+    def contact_cost(length, normal, normal_bound, tangential, tangential_bound):
+        return length * (normal_bound * normal + tangential_bound * tangential)
+
+    @numba.njit()
+    def contact_cost_functional(var, displacement, nodes, contact_boundary, contact_normals, dt):
+        offset = len(var) // problem_dimension
+
+        cost = 0.0
+        # pylint: disable=not-an-iterable
+        for ei in numba.prange(len(contact_boundary)):
+            edge = contact_boundary[ei]
+            normal_vector = contact_normals[ei]
+            # ASSUMING `u_vector` and `nodes` have the same order!
+            vm = interpolate_node_between(edge, var, dimension=variable_dimension)
+            if variable_dimension == 1:
+                vm_normal = vm[0]
+                vm_tangential = np.empty(0)
+            else:
+                vm_normal = (vm * normal_vector).sum()
+                vm_tangential = vm - vm_normal * normal_vector
+
+            um = interpolate_node_between(edge, displacement, dimension=problem_dimension)
+            um_normal = (um * normal_vector).sum()
+
+            for node_id in edge:
+                if node_id >= offset:
+                    continue
+
+            cost += contact_cost(
+                nph.length(edge, nodes),
+                1,
+                contact(um + vm * dt, vm),
+                0, 0
+            )
+        return cost
+
+    # pylint: disable=unused-argument # 'dt'
+    @numba.njit()
+    def cost_functional(var, nodes, contact_boundary, contact_normals, lhs, rhs, u_vector, base_integrals, dt):
+        ju = contact_cost_functional(var, u_vector, nodes, contact_boundary, contact_normals, dt)
         result = 0.5 * np.dot(np.dot(lhs, var), var) - np.dot(rhs, var) + ju
         result = np.asarray(result).ravel()
         return result

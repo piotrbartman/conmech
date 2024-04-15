@@ -39,7 +39,11 @@ class Direct(Solver):
             self.equation = make_equation(
                 jn=contact_law.subderivative_normal_direction,
                 jt=contact_law.regularized_subderivative_tangential_direction,
-                contact=contact_law.general_contact_condition,
+                contact=(
+                    contact_law.general_contact_condition
+                    if hasattr(contact_law, "general_contact_condition")
+                    else None
+                ),
                 h_functional=friction_bound,
             )
 
@@ -64,22 +68,7 @@ class Direct(Solver):
     ) -> np.ndarray:
         displacement = np.squeeze(displacement.copy().reshape(1, -1))
         if self.equation is not None:
-            # result = scipy.optimize.fsolve(
-            #     self.equation,
-            #     initial_guess,
-            #     args=(
-            #         self.body.mesh.nodes,
-            #         self.body.mesh.contact_boundary,
-            #         self.body.mesh.boundaries.contact_normals,
-            #         self.node_relations,
-            #         self.node_forces,
-            #         displacement,
-            #         velocity,
-            #         self.body.dynamics.acceleration_operator.SM1.data,
-            #         # self.body.dynamics.volume_at_nodes,
-            #     ),
-            # )
-            result = scipy.optimize.minimize(
+            result = scipy.optimize.fsolve(
                 self.equation,
                 initial_guess,
                 args=(
@@ -90,13 +79,27 @@ class Direct(Solver):
                     self.node_forces,
                     displacement,
                     velocity,
-                    # self.body.dynamics.acceleration_operator.SM1.data,
-                    self.body.dynamics.volume_at_nodes,
-                    self.body.mesh.independent_indices,
+                    self.body.dynamics.acceleration_operator.SM1.data,
+                    self.time_step
                 ),
-                method="BFGS",
             )
-            result = result.x
+            # result = scipy.optimize.minimize(
+            #     self.equation,
+            #     initial_guess,
+            #     args=(
+            #         self.body.mesh.nodes,
+            #         self.body.mesh.contact_boundary,
+            #         self.body.mesh.boundaries.contact_normals,
+            #         self.node_relations,
+            #         self.node_forces,
+            #         displacement,
+            #         velocity,
+            #         self.body.dynamics.volume_at_nodes,
+            #         self.time_step,
+            #     ),
+            #     method="BFGS",
+            # )
+            # result = result.x
         else:
             result = np.linalg.solve(self.node_relations, self.node_forces)
         return np.asarray(result)

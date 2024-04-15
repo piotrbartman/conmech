@@ -5,12 +5,13 @@ import numpy as np
 from conmech.helpers.config import Config
 from conmech.mesh.boundaries_description import BoundariesDescription
 from conmech.plotting.drawer import Drawer
-from conmech.scenarios.problems import ContactWaveProblem, ContactLaw
+from conmech.scenarios.problems import ContactWaveProblem, ContactLaw, \
+    InteriorContactLaw
 from conmech.simulations.problem_solver import WaveSolver
 from conmech.properties.mesh_description import CrossMeshDescription
 
 
-class DampedNormalCompliance(ContactLaw):
+class DampedNormalCompliance(InteriorContactLaw):
     @staticmethod
     def general_contact_condition(u, v):
         k = 50
@@ -31,7 +32,7 @@ class MembraneSetup(ContactWaveProblem):
             x: np.ndarray,
             t: Optional[float] = None
     ) -> np.ndarray:
-        return np.array([2])
+        return np.array([5])
 
     @staticmethod
     def outer_forces(
@@ -60,28 +61,40 @@ def main(config: Config):
 
     states = runner.solve(
         n_steps=steps,
-        output_step=range(0, steps),
+        output_step=range(0, 26),
         initial_displacement=setup.initial_displacement,
         initial_velocity=setup.initial_velocity,
         verbose=True,
         method="Powell",
     )
-    for state in states:
-        print(max(state.displacement[:, 0]), max(state.velocity[:, 0]))
+    for i, state in enumerate(states):
+        print("97:", (state.displacement[97, 0]), (state.velocity[97, 0]), "50:", (state.displacement[50, 0]), (state.velocity[50, 0]))
+        if i % 5 != 0:
+            continue
         field = np.zeros(state.displacement.shape[0] * 2)
-        field[:field.shape[0] // 2] = state.displacement[:, 0] * 5
-        field[field.shape[0] // 2:] = state.displacement[:, 0] * 5
-        state.set_displacement(field, 0)
+        zeros = np.zeros(state.displacement.shape[0] * 2)
+        field[:field.shape[0] // 2] = state.displacement[:, 0] * 1
+        field[field.shape[0] // 2:] = state.displacement[:, 0] * 1
+        state.set_displacement(zeros, 0)
+        state.temperature = field[:field.shape[0] // 2]
         drawer = Drawer(state=state, config=config)
+        drawer.cmap = "plasma"
+        drawer.field_name = "temperature"
+        drawer.field_label = "displacement"
         drawer.draw(
             show=config.show, save=config.save, foundation=False,
         )
         field = np.zeros(state.velocity.shape[0] * 2)
         field[:field.shape[0] // 2] = state.velocity[:, 0] * 1
         field[field.shape[0] // 2:] = state.velocity[:, 0] * 1
-        state.set_displacement(field, 0)
+        state.set_displacement(zeros, 0)
+        state.temperature = field[:field.shape[0] // 2]
+        drawer = Drawer(state=state, config=config)
+        drawer.cmap = "plasma"
+        drawer.field_name = "temperature"
+        drawer.field_label = "velocity"
         drawer.draw(
-            show=config.show, save=config.save, foundation=False,
+            show=config.show, save=config.save, foundation=False, field_min=min(state.temperature), field_max=max(state.temperature)
         )
 
 

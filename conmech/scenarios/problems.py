@@ -32,6 +32,8 @@ class ContactLaw:
         """
         raise NotImplementedError()
 
+
+class InteriorContactLaw(ContactLaw):
     @staticmethod
     def general_contact_condition(u, v):  # TODO
         raise NotImplementedError()
@@ -101,6 +103,11 @@ class WaveProblem(DynamicProblem, ABC):
 
 @dataclass
 class ContactWaveProblem(WaveProblem, ABC):
+    contact_law: ContactLaw
+
+
+@dataclass
+class BoundaryContactWaveProblem(WaveProblem, ABC):
     contact_law: ContactLaw
 
 
