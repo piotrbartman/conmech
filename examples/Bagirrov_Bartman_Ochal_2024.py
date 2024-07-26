@@ -1,6 +1,7 @@
 """
 Created at 21.08.2019
 """
+
 import pickle
 from dataclasses import dataclass
 from matplotlib import pyplot as plt
@@ -37,7 +38,7 @@ def normal_direction(u_nu: float) -> float:
         return k10 * (u_nu * 2) + k11
     if u_nu < 2 * mm:
         return k20 * (u_nu * 2) + k21
-    return u_nu ** 3 * 4 * k30
+    return u_nu**3 * 4 * k30
 
 
 class MMLV99(ContactLaw):
@@ -46,12 +47,12 @@ class MMLV99(ContactLaw):
         if u_nu <= 0:
             return 0.0
         if u_nu < 0.5 * mm:
-            return k0 * u_nu ** 2
+            return k0 * u_nu**2
         if u_nu < 1 * mm:
-            return k10 * u_nu ** 2 + k11 * u_nu
+            return k10 * u_nu**2 + k11 * u_nu
         if u_nu < 2 * mm:
-            return k20 * u_nu ** 2 + k21 * u_nu + 4
-        return u_nu ** 4 * k30
+            return k20 * u_nu**2 + k21 * u_nu + 4
+        return u_nu**4 * k30
 
     @staticmethod
     def potential_tangential_direction(u_tau: np.ndarray) -> float:
@@ -63,7 +64,7 @@ class MMLV99(ContactLaw):
 
     @staticmethod
     def regularized_subderivative_tangential_direction(
-            u_tau: np.ndarray, v_tau: np.ndarray, rho=1e-7
+        u_tau: np.ndarray, v_tau: np.ndarray, rho=1e-7
     ) -> float:
         """
         Coulomb regularization
@@ -167,12 +168,11 @@ def main(config: Config, methods, forces):
             drawer.draw(
                 show=config.show,
                 save=config.save,
-                title=f"{m}: {f}, "
+                title=f"{m}: {f}, ",
                 # f"time: {runner.step_solver.last_timing}"
             )
-            x = state.body.mesh.nodes[:state.body.mesh.contact_nodes_count - 1,
-                0]
-            u = state.displacement[:state.body.mesh.contact_nodes_count - 1, 1]
+            x = state.body.mesh.nodes[: state.body.mesh.contact_nodes_count - 1, 0]
+            u = state.displacement[: state.body.mesh.contact_nodes_count - 1, 1]
             y1 = [normal_direction(-u_) for u_ in u]
             print(f)
             plt.plot(x, y1, label=f"{f:.2e}")
@@ -182,7 +182,7 @@ def main(config: Config, methods, forces):
 
 
 if __name__ == "__main__":
-    X = np.linspace((2-2) * mm, (2+2) * mm, 1000)
+    X = np.linspace((2 - 2) * mm, (2 + 2) * mm, 1000)
     Y = np.empty(1000)
     for i in range(1000):
         Y[i] = MMLV99.potential_normal_direction(X[i])
@@ -236,6 +236,15 @@ if __name__ == "__main__":
     # # plt.loglog()
     # plt.show()
     methods = ("BFGS", "CG", "qsm", "Powell", "subgradient")
-    forces = (23e3 * kN, 25e3 * kN, 25.6e3 * kN, 25.9e3 * kN, 26e3 * kN,
-              26.1e3 * kN, 26.2e3 * kN, 27e3 * kN, 30e3 * kN)[-1::4]
+    forces = (
+        23e3 * kN,
+        25e3 * kN,
+        25.6e3 * kN,
+        25.9e3 * kN,
+        26e3 * kN,
+        26.1e3 * kN,
+        26.2e3 * kN,
+        27e3 * kN,
+        30e3 * kN,
+    )[-1::4]
     main(Config(save=False, show=True, force=False).init(), methods, forces)

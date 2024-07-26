@@ -1,7 +1,21 @@
-"""
-Created at 21.08.2019
-"""
-
+# CONMECH @ Jagiellonian University in Kraków
+#
+# Copyright (C) 2019-2024  Piotr Bartman-Szwarc <piotr.bartman@uj.edu.pl>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+# USA.
 from typing import Callable, Optional, Any
 
 import numba
@@ -211,6 +225,7 @@ def make_cost_functional(
 
     return cost_functional
 
+
 def make_cost_functional_subgradient(
     djn: Callable, djt: Optional[Callable] = None, dh_functional: Optional[Callable] = None
 ):
@@ -220,8 +235,7 @@ def make_cost_functional_subgradient(
     DIMENSION = 2
 
     @numba.njit()
-    def contact_subgradient(u_vector, u_vector_old, nodes, contact_boundary,
-                            contact_normals):
+    def contact_subgradient(u_vector, u_vector_old, nodes, contact_boundary, contact_normals):
         cost = np.zeros_like(u_vector)
         offset = len(u_vector) // DIMENSION
 
@@ -232,11 +246,11 @@ def make_cost_functional_subgradient(
             n_1 = nodes[n_id_1]
             if n_id_0 < offset:
                 um_normal_0 = -n_0[0]  # TODO
-                cost[n_id_0] = djn(um_normal_0, 0., 0.)
+                cost[n_id_0] = djn(um_normal_0, 0.0, 0.0)
                 cost[n_id_0 + offset] = cost[n_id_0]
             if n_id_1 < offset:
                 um_normal_1 = -n_1[0]  # TODO
-                cost[n_id_1] = djn(um_normal_1, 0., 0.)
+                cost[n_id_1] = djn(um_normal_1, 0.0, 0.0)
                 cost[n_id_1 + offset] = cost[n_id_1]
         return cost
 
@@ -254,9 +268,7 @@ def make_cost_functional_subgradient(
         base_integrals,
         dt,
     ):
-        dj = contact_subgradient(
-            var, var_old, nodes, contact_boundary, contact_normals
-        )
+        dj = contact_subgradient(var, var_old, nodes, contact_boundary, contact_normals)
         result = np.dot(lhs, var) - rhs + dj
         result = result.ravel()
         return result
