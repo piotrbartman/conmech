@@ -161,9 +161,8 @@ def make_cost_functional(
     def contact_cost_functional(
         var, var_old, static_displacement, nodes, contact_boundary, contact_normals, dt
     ):
-        offset = len(var) // problem_dimension
-
         cost = 0.0
+
         # pylint: disable=not-an-iterable
         for ei in numba.prange(len(contact_boundary)):
             edge = contact_boundary[ei]
@@ -187,10 +186,6 @@ def make_cost_functional(
             static_displacement_tangential = (
                 static_displacement_mean - static_displacement_normal * normal_vector
             )
-
-            for node_id in edge:
-                if node_id >= offset:
-                    continue
 
             cost += contact_cost(
                 nph.length(edge, nodes),
@@ -226,18 +221,16 @@ def make_cost_functional(
     return cost_functional
 
 
-def make_cost_functional_subgradient(
-    djn: Callable, djt: Optional[Callable] = None, dh_functional: Optional[Callable] = None
+def make_subgradient(
+    djn: Callable,
+    problem_dimension=2,
 ):
     djn = njit(djn)
-    djt = njit(djt)
-    dh_functional = njit(dh_functional)
-    DIMENSION = 2
 
     @numba.njit()
-    def contact_subgradient(u_vector, u_vector_old, nodes, contact_boundary, contact_normals):
+    def contact_subgradient(u_vector, nodes, contact_boundary):
         cost = np.zeros_like(u_vector)
-        offset = len(u_vector) // DIMENSION
+        offset = len(u_vector) // problem_dimension
 
         for edge in contact_boundary:
             n_id_0 = edge[0]
@@ -254,7 +247,7 @@ def make_cost_functional_subgradient(
                 cost[n_id_1 + offset] = cost[n_id_1]
         return cost
 
-    # pylint: disable=unused-argument # 'dt'
+    # pylint: disable=unused-argument # takes the same args as cost_functional
     @numba.njit()
     def subgradient(
         var,
@@ -268,7 +261,7 @@ def make_cost_functional_subgradient(
         base_integrals,
         dt,
     ):
-        dj = contact_subgradient(var, var_old, nodes, contact_boundary, contact_normals)
+        dj = contact_subgradient(var, nodes, contact_boundary)
         result = np.dot(lhs, var) - rhs + dj
         result = result.ravel()
         return result

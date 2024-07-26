@@ -34,7 +34,7 @@ from conmech.solvers.solver import Solver
 from conmech.solvers.solver_methods import (
     make_cost_functional,
     make_equation,
-    make_cost_functional_subgradient,
+    make_subgradient,
 )
 
 
@@ -62,11 +62,9 @@ class Optimization(Solver):
             variable_dimension=statement.dimension_out,
             problem_dimension=statement.dimension_in,
         )
-        if hasattr(contact_law, "subderivative_normal_direction"):
-            self.subgradient = make_cost_functional_subgradient(
-                djn=contact_law.subderivative_normal_direction,  # TODO
-                djt=None,
-                dh_functional=None,
+        if hasattr(contact_law, "subderivative_normal_direction"):  # TODO
+            self.subgradient = make_subgradient(
+                djn=contact_law.subderivative_normal_direction,
             )
         if isinstance(statement, WaveStatement):
             if isinstance(contact_law, InteriorContactLaw):
