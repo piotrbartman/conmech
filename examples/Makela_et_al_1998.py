@@ -183,7 +183,7 @@ def main(config: Config, methods, forces):
             )
             x = state.body.mesh.nodes[: state.body.mesh.contact_nodes_count - 1, 0]
             u = state.displacement[: state.body.mesh.contact_nodes_count - 1, 1]
-            y1 = [MMLV99().normal_direction(-u_) for u_ in u]
+            y1 = [MMLV99().subderivative_normal_direction(-u_, 0.0, 0.0) for u_ in u]
             plt.plot(x, y1, label=f"{f:.2e}")
         plt.ylabel("Interlaminar binding force [kN/m$^2$]")
         plt.xlabel(r"Contact interface [mm]")

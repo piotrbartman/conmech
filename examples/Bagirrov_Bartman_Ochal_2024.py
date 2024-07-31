@@ -29,47 +29,40 @@ k21 = 5e3 * kN * surface
 k30 = 2.5e12 * kN * surface
 
 
-def normal_direction(u_nu: float) -> float:
-    if u_nu <= 0:
-        return 0.0
-    if u_nu < 0.5 * mm:
-        return k0 * u_nu * 2
-    if u_nu < 1 * mm:
-        return k10 * (u_nu * 2) + k11
-    if u_nu < 2 * mm:
-        return k20 * (u_nu * 2) + k21
-    return u_nu**3 * 4 * k30
-
-
 class MMLV99(ContactLaw):
     @staticmethod
-    def potential_normal_direction(u_nu: float) -> float:
-        if u_nu <= 0:
-            return 0.0
-        if u_nu < 0.5 * mm:
-            return k0 * u_nu**2
-        if u_nu < 1 * mm:
-            return k10 * u_nu**2 + k11 * u_nu
-        if u_nu < 2 * mm:
-            return k20 * u_nu**2 + k21 * u_nu + 4
-        return u_nu**4 * k30
-
-    @staticmethod
-    def potential_tangential_direction(u_tau: np.ndarray) -> float:
-        return np.log(np.sum(u_tau * u_tau) ** 0.5 + 1)
-
-    @staticmethod
-    def subderivative_normal_direction(u_nu: float, v_nu: float) -> float:
-        return 0
-
-    @staticmethod
-    def regularized_subderivative_tangential_direction(
-        u_tau: np.ndarray, v_tau: np.ndarray, rho=1e-7
+    def potential_normal_direction(
+        var_nu: float, static_displacement_nu: float, dt: float
     ) -> float:
-        """
-        Coulomb regularization
-        """
-        return 0
+        if var_nu <= 0:
+            return 0.0
+        if var_nu < 0.5 * mm:
+            return k0 * var_nu**2
+        if var_nu < 1 * mm:
+            return k10 * var_nu**2 + k11 * var_nu
+        if var_nu < 2 * mm:
+            return k20 * var_nu**2 + k21 * var_nu + 4
+        return var_nu**4 * k30
+
+    @staticmethod
+    def potential_tangential_direction(
+        var_tau: float, static_displacement_tau: float, dt: float
+    ) -> float:
+        return np.log(np.sum(var_tau ** 2) ** 0.5 + 1)
+
+    @staticmethod
+    def subderivative_normal_direction(
+        var_nu: float, static_displacement_nu: float, dt: float
+    ) -> float:
+        if var_nu <= 0:
+            return 0.0
+        if var_nu < 0.5 * mm:
+            return k0 * var_nu * 2
+        if var_nu < 1 * mm:
+            return k10 * (var_nu * 2) + k11
+        if var_nu < 2 * mm:
+            return k20 * (var_nu * 2) + k21
+        return var_nu ** 3 * 4 * k30
 
 
 @dataclass()
@@ -173,7 +166,7 @@ def main(config: Config, methods, forces):
             )
             x = state.body.mesh.nodes[: state.body.mesh.contact_nodes_count - 1, 0]
             u = state.displacement[: state.body.mesh.contact_nodes_count - 1, 1]
-            y1 = [normal_direction(-u_) for u_ in u]
+            y1 = [MMLV99().subderivative_normal_direction(-u_, 0., 0.) for u_ in u]
             print(f)
             plt.plot(x, y1, label=f"{f:.2e}")
         plt.title(m)
@@ -185,11 +178,11 @@ if __name__ == "__main__":
     X = np.linspace((2 - 2) * mm, (2 + 2) * mm, 1000)
     Y = np.empty(1000)
     for i in range(1000):
-        Y[i] = MMLV99.potential_normal_direction(X[i])
+        Y[i] = MMLV99.potential_normal_direction(X[i], 0., 0.)
     plt.plot(X, Y)
     plt.show()
     for i in range(1000):
-        Y[i] = normal_direction(X[i])
+        Y[i] = MMLV99().subderivative_normal_direction(X[i], 0., 0.)
     plt.plot(X, Y)
     plt.show()
     # results = {

@@ -201,6 +201,7 @@ def generate_test_suits():
     ]
 
     test_suites.append((optimization_mtd_subg, expected_displacement_vector_subg))
+    test_suites.append(("qsmlm", expected_displacement_vector_subg))
 
     return test_suites
 

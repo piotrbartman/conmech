@@ -261,9 +261,11 @@ def make_subgradient(
         base_integrals,
         dt,
     ):
-        dj = contact_subgradient(var, nodes, contact_boundary)
-        result = np.dot(lhs, var) - rhs + dj
-        result = result.ravel()
+        result = np.zeros_like(var)
+        ind = lhs.shape[0]
+        dj = contact_subgradient(var[:ind], nodes, contact_boundary)
+        result_ = np.dot(lhs, var[:ind]) - rhs + dj
+        result[:ind] = result_.ravel()
         return result
 
     return subgradient

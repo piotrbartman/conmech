@@ -36,6 +36,7 @@ from conmech.solvers.solver_methods import (
     make_equation,
     make_subgradient,
 )
+from kosopt.qsmlm import make_minimizer
 
 
 class Optimization(Solver):
@@ -66,6 +67,8 @@ class Optimization(Solver):
             self.subgradient = make_subgradient(
                 djn=contact_law.subderivative_normal_direction,
             )
+        else:
+            self.subgradient = None
         if isinstance(statement, WaveStatement):
             if isinstance(contact_law, InteriorContactLaw):
                 self.loss = make_equation(  # TODO!
@@ -81,6 +84,7 @@ class Optimization(Solver):
                 variable_dimension=statement.dimension_out,
                 problem_dimension=statement.dimension_in,
             )
+        self.minimizer = None
 
     def __str__(self):
         raise NotImplementedError()
@@ -127,6 +131,16 @@ class Optimization(Solver):
         sols.append(solution)
         loss.append(self.loss(solution, *args)[0])
 
+        if self.minimizer is None and method.lower() in (
+                "quasi secant method",
+                "limited memory quasi secant method",
+                "quasi secant method limited memory",
+                "qsm",
+                "qsmlm",
+                "subgradient",
+        ):
+            self.minimizer = make_minimizer(self.loss, self.subgradient)
+
         while norm >= fixed_point_abs_tol:
             if method.lower() in (
                 "quasi secant method",
@@ -138,16 +152,20 @@ class Optimization(Solver):
                 # pylint: disable=import-outside-toplevel,import-error)
                 from kosopt import qsmlm
 
-                solution = qsmlm.minimize(
-                    self.loss, solution, args=args, maxiter=maxiter, subgradient=self.subgradient
+                solution = self.minimizer(
+                    solution, args, maxiter=maxiter
                 )
+                sols.append(solution.copy())
+                loss.append(self.loss(solution, *args)[0])
             elif method.lower() in ("subgradient",):
                 # pylint: disable=import-outside-toplevel,import-error)
                 from kosopt import subgradient
 
                 solution = subgradient.minimize(
-                    self.loss, solution, args=args, maxiter=maxiter, subgradient=self.subgradient
+                    self.minimizer, self.loss, solution, args, maxiter=maxiter
                 )
+                sols.append(solution.copy())
+                loss.append(self.loss(solution, *args)[0])
             elif method.lower() in (  # TODO
                 "discontinuous gradient",
                 "discontinuous gradient method",
@@ -158,6 +176,7 @@ class Optimization(Solver):
 
                 solution = qsmlmi.minimize(self.loss, solution, args=args, maxiter=maxiter)
                 sols.append(solution.copy())
+                loss.append(self.loss(solution, *args)[0])
             elif method.lower() == "constrained":
                 contact_nodes_count = self.body.mesh.boundaries.contact_nodes_count
 
