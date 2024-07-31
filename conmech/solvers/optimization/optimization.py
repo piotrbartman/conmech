@@ -132,12 +132,12 @@ class Optimization(Solver):
         loss.append(self.loss(solution, *args)[0])
 
         if self.minimizer is None and method.lower() in (
-                "quasi secant method",
-                "limited memory quasi secant method",
-                "quasi secant method limited memory",
-                "qsm",
-                "qsmlm",
-                "subgradient",
+            "quasi secant method",
+            "limited memory quasi secant method",
+            "quasi secant method limited memory",
+            "qsm",
+            "qsmlm",
+            "subgradient",
         ):
             self.minimizer = make_minimizer(self.loss, self.subgradient)
 
@@ -149,12 +149,7 @@ class Optimization(Solver):
                 "qsm",
                 "qsmlm",
             ):
-                # pylint: disable=import-outside-toplevel,import-error)
-                from kosopt import qsmlm
-
-                solution = self.minimizer(
-                    solution, args, maxiter=maxiter
-                )
+                solution = self.minimizer(solution, args, maxiter=maxiter)
                 sols.append(solution.copy())
                 loss.append(self.loss(solution, *args)[0])
             elif method.lower() in ("subgradient",):

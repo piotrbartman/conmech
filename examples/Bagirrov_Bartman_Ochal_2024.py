@@ -48,7 +48,7 @@ class MMLV99(ContactLaw):
     def potential_tangential_direction(
         var_tau: float, static_displacement_tau: float, dt: float
     ) -> float:
-        return np.log(np.sum(var_tau ** 2) ** 0.5 + 1)
+        return np.log(np.sum(var_tau**2) ** 0.5 + 1)
 
     @staticmethod
     def subderivative_normal_direction(
@@ -62,7 +62,7 @@ class MMLV99(ContactLaw):
             return k10 * (var_nu * 2) + k11
         if var_nu < 2 * mm:
             return k20 * (var_nu * 2) + k21
-        return var_nu ** 3 * 4 * k30
+        return var_nu**3 * 4 * k30
 
 
 @dataclass()
@@ -166,7 +166,7 @@ def main(config: Config, methods, forces):
             )
             x = state.body.mesh.nodes[: state.body.mesh.contact_nodes_count - 1, 0]
             u = state.displacement[: state.body.mesh.contact_nodes_count - 1, 1]
-            y1 = [MMLV99().subderivative_normal_direction(-u_, 0., 0.) for u_ in u]
+            y1 = [MMLV99().subderivative_normal_direction(-u_, 0.0, 0.0) for u_ in u]
             print(f)
             plt.plot(x, y1, label=f"{f:.2e}")
         plt.title(m)
@@ -178,11 +178,11 @@ if __name__ == "__main__":
     X = np.linspace((2 - 2) * mm, (2 + 2) * mm, 1000)
     Y = np.empty(1000)
     for i in range(1000):
-        Y[i] = MMLV99.potential_normal_direction(X[i], 0., 0.)
+        Y[i] = MMLV99.potential_normal_direction(X[i], 0.0, 0.0)
     plt.plot(X, Y)
     plt.show()
     for i in range(1000):
-        Y[i] = MMLV99().subderivative_normal_direction(X[i], 0., 0.)
+        Y[i] = MMLV99().subderivative_normal_direction(X[i], 0.0, 0.0)
     plt.plot(X, Y)
     plt.show()
     # results = {
