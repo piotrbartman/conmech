@@ -9,8 +9,10 @@ from conmech.plotting.drawer import Drawer
 from conmech.scenarios.problems import PoissonProblem
 from conmech.dynamics.contact.contact_law import ContactLaw, PotentialOfContactLaw
 from conmech.simulations.problem_solver import PoissonSolver
-from conmech.properties.mesh_description import CrossMeshDescription
+from conmech.properties.mesh_description import CrossMeshDescription, RectangleMeshDescription
 
+
+B_COEF = 5
 
 def make_slope_contact_law(slope: float) -> Type[ContactLaw]:
     class TarziaContactLaw(PotentialOfContactLaw):
@@ -18,7 +20,7 @@ def make_slope_contact_law(slope: float) -> Type[ContactLaw]:
         def potential_normal_direction(
             var_nu: float, static_displacement_nu: float, dt: float
         ) -> float:
-            b = 5
+            b = B_COEF
             r = var_nu
             # EXAMPLE 11
             # if r < b:
@@ -64,13 +66,17 @@ def main(config: Config):
 
     To see result of simulation you need to call from python `main(Config().init())`.
     """
-    alphas = [0.01, 0.1, 1, 10, 100, 1000, 10000]
-    ihs = [4, 8, 16, 32, 64, 128, 256]
+    alphas = [0.01, 0.1, 1, 10, 100, 1000, 10_000, 1_000_000, 1_000_000_000]
+    ihs = [4, 8, 16, 32, 64, 128, 256][:-2]
+    # OVERRIDE!!!
+    alphas = [1]
+    ihs = [16]
     alphas = alphas if not config.test else alphas[:1]
     ihs = ihs if not config.test else ihs[:1]
 
     for alpha in alphas:
         for ih in ihs:
+            print(f"Outer {alpha=}, {ih=}")
             try:
                 if config.force:
                     simulate(config, alpha, ih)
@@ -82,13 +88,16 @@ def main(config: Config):
 
 def simulate(config, alpha, ih):
     print(f"Simulate {alpha=}, {ih=}")
-    mesh_descr = CrossMeshDescription(
+    # mesh_descr = CrossMeshDescription(
+    #     initial_position=None, max_element_perimeter=1 / ih, scale=[2, 1]
+    # )
+    mesh_descr = RectangleMeshDescription(
         initial_position=None, max_element_perimeter=1 / ih, scale=[2, 1]
     )
     setup = StaticPoissonSetup(mesh_descr)
-    setup.contact_law = make_slope_contact_law(slope=alpha)
+    setup.contact_law_2 = make_slope_contact_law(slope=alpha)
 
-    runner = PoissonSolver(setup, "global")
+    runner = PoissonSolver(setup, "schur")
 
     state = runner.solve(verbose=True)
 
@@ -114,9 +123,12 @@ def draw(config, alpha, ih):
     drawer = Drawer(state=state, config=config)
     drawer.cmap = "plasma"
     drawer.field_name = "temperature"
+    drawer.deformed_mesh_color = None
+    drawer.original_mesh_color = None
     drawer.draw(
-        show=config.show,
-        save=config.save,
+        title=f"alpha={alpha}, ih={ih}",
+        show=True,
+        save=False,
         foundation=False,
         field_max=max_,
         field_min=min_,
