@@ -10,7 +10,7 @@ from conmech.scenarios.problems import PoissonProblem
 from conmech.dynamics.contact.contact_law import ContactLaw, PotentialOfContactLaw
 from conmech.simulations.problem_solver import PoissonSolver
 from conmech.properties.mesh_description import CrossMeshDescription, RectangleMeshDescription
-
+from tests.test_conmech.regression.test_Makela_et_al_1998 import solving_method
 
 B_COEF = 5
 
@@ -27,8 +27,20 @@ def make_slope_contact_law(slope: float) -> Type[ContactLaw]:
                 result = 0.5 * (r - b) ** 2
             else:
                 result = np.log((r - b) + 1)
-            # EXAMPLE 13
-            # result = 0.5 * (r - b) ** 2
+            result *= slope
+            return result
+
+        @staticmethod
+        def subderivative_normal_direction(
+            var_nu: float, static_displacement_nu: float, dt: float
+        ) -> float:
+            b = B_COEF
+            r = var_nu
+            # EXAMPLE 11
+            if r < b:
+                result = r - b
+            else:
+                result = 1 / (r - b  +1)
             result *= slope
             return result
 
@@ -56,10 +68,10 @@ class StaticPoissonSetup(PoissonProblem):
 
     boundaries: ... = BoundariesDescription(
         dirichlet=(
-            lambda x: x[1] == 0.0 ,#or x[0] == 2.0,
+            lambda x: x[1] == 0.0 or x[1] == 1.0,
             lambda x: np.full(x.shape[0], 5),
         ),
-        contact=lambda x: x[1] == 1.0,
+        # contact=lambda x: x[1] == 1.0,
     )
 
 
@@ -69,11 +81,10 @@ def main(config: Config):
 
     To see result of simulation you need to call from python `main(Config().init())`.
     """
-    alphas = [0.01, 0.1, 1, 10, 100, 1000, 10_000, 1_000_000, 1_000_000_000]
+    alphas = [0.01, 0.1, 1, 10, 100, 1000, 10_000, 1_000_000, 1_000_000_000, np.inf]
     ihs = [4, 8, 16, 32, 48, 72]
-    # OVERRIDE!!!
-    # alphas = [1_000_000]
-    # ihs = [15]
+    # alphas = [np.inf]
+    # ihs = [4]
     alphas = alphas if not config.test else alphas[:1]
     ihs = ihs if not config.test else ihs[:1]
 
@@ -100,7 +111,8 @@ def simulate(config, alpha, ih):
     setup = StaticPoissonSetup(mesh_descr)
     setup.contact_law_2 = make_slope_contact_law(slope=alpha)
 
-    runner = PoissonSolver(setup, "schur")
+    solving_method = "schur" if alpha != np.inf else "direct"
+    runner = PoissonSolver(setup, solving_method)
 
     state = runner.solve(verbose=True, method="qsm")
 
@@ -129,7 +141,7 @@ def draw(config, alpha, ih):
     drawer.deformed_mesh_color = None
     drawer.original_mesh_color = None
 
-    show = False
+    show = True
     drawer.draw(
         title=f"alpha={alpha}, ih={ih}",
         show=show,
@@ -141,4 +153,4 @@ def draw(config, alpha, ih):
 
 
 if __name__ == "__main__":
-    main(Config(outputs_path="./output/BOT2023", force=True).init())
+    main(Config(outputs_path="./output/BOT2023", force=False).init())
