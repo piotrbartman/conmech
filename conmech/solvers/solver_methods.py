@@ -40,6 +40,23 @@ def interpolate_node_between(edge, vector, full_vector, dimension):
     return result
 
 
+@numba.njit(inline="always")
+def get_nodes(edge, vector, full_vector, dimension):
+    result = np.zeros((dimension, len(edge) + 1))
+    offset = len(vector) // dimension
+    offset_full = len(full_vector) // dimension
+    for n, node in enumerate(edge):
+        for i in range(dimension):
+            if node < offset:  # exclude dirichlet nodes (and inner nodes in schur)
+                result[i, n + 1] += vector[i * offset + node]
+                result[i, 0] += vector[i * offset + node] / len(edge)
+            else:
+                # old values
+                result[i, n + 1] += full_vector[i * offset_full + node]
+                result[i, 0] += full_vector[i * offset_full + node] / len(edge)
+    return result
+
+
 # pylint: disable=too-many-arguments
 def make_equation(
     jn: Optional[callable],
@@ -168,33 +185,36 @@ def make_cost_functional(
         for ei in numba.prange(len(contact_boundary)):
             edge = contact_boundary[ei]
             normal_vector = contact_normals[ei]
-            # ASSUMING `u_vector` and `nodes` have the same order!
-            vm = interpolate_node_between(edge, var, var_old, dimension=variable_dimension)
-            if variable_dimension == 1:
-                vm_normal = vm[0]
-                vm_tangential = np.empty(0)
-            else:
-                vm_normal = (vm * normal_vector).sum()
-                vm_tangential = vm - vm_normal * normal_vector
+            vms = get_nodes(edge, var, var_old, dimension=variable_dimension)
+            for dim_ in range(len(vms[0])):
+                vm = vms[:, dim_]
+                # ASSUMING `u_vector` and `nodes` have the same order!
 
-            static_displacement_mean = interpolate_node_between(
-                edge,
-                static_displacement,
-                static_displacement,
-                dimension=problem_dimension,
-            )
-            static_displacement_normal = (static_displacement_mean * normal_vector).sum()
-            static_displacement_tangential = (
-                static_displacement_mean - static_displacement_normal * normal_vector
-            )
+                if variable_dimension == 1:
+                    vm_normal = vm[0]
+                    vm_tangential = np.empty(0)
+                else:
+                    vm_normal = (vm * normal_vector).sum()
+                    vm_tangential = vm - vm_normal * normal_vector
 
-            cost += contact_cost(
-                nph.length(edge, nodes),
-                normal_condition(vm_normal, static_displacement_normal, dt),
-                normal_condition_bound(vm_normal, static_displacement_normal, dt),
-                tangential_condition(vm_tangential, static_displacement_tangential, dt),
-                tangential_condition_bound(vm_normal, static_displacement_normal, dt),
-            )
+                static_displacement_mean = interpolate_node_between(
+                    edge,
+                    static_displacement,
+                    static_displacement,
+                    dimension=problem_dimension,
+                )
+                static_displacement_normal = (static_displacement_mean * normal_vector).sum()
+                static_displacement_tangential = (
+                    static_displacement_mean - static_displacement_normal * normal_vector
+                )
+
+                cost += contact_cost(
+                    nph.length(edge, nodes) / len(vms[0]),
+                    normal_condition(vm_normal, static_displacement_normal, dt),
+                    normal_condition_bound(vm_normal, static_displacement_normal, dt),
+                    tangential_condition(vm_tangential, static_displacement_tangential, dt),
+                    tangential_condition_bound(vm_normal, static_displacement_normal, dt),
+                )
         return cost
 
     # pylint: disable=too-many-arguments,unused-argument # 'base_integrals'
@@ -264,39 +284,42 @@ def make_subgradient(
         for ei in numba.prange(len(contact_boundary)):
             edge = contact_boundary[ei]
             normal_vector = contact_normals[ei]
-            # ASSUMING `u_vector` and `nodes` have the same order!
-            vm = interpolate_node_between(edge, var, var_old, dimension=variable_dimension)
-            if variable_dimension == 1:
-                raise NotImplementedError()  # TODO
-                # vm_normal = vm[0]
-                # vm_tangential = np.empty(0)
-            # else:
-            vm_normal = (vm * normal_vector).sum()
-            vm_tangential = vm - vm_normal * normal_vector
+            vms = get_nodes(edge, var, var_old, dimension=variable_dimension)
+            for dim_ in range(len(vms[0])):
+                vm = vms[:, dim_]
+                # ASSUMING `u_vector` and `nodes` have the same order!
+                vm = interpolate_node_between(edge, var, var_old, dimension=variable_dimension)
+                if variable_dimension == 1:
+                    raise NotImplementedError()  # TODO
+                    # vm_normal = vm[0]
+                    # vm_tangential = np.empty(0)
+                # else:
+                vm_normal = (vm * normal_vector).sum()
+                vm_tangential = vm - vm_normal * normal_vector
 
-            static_displacement_mean = interpolate_node_between(
-                edge,
-                static_displacement,
-                static_displacement,
-                dimension=problem_dimension,
-            )
-            static_displacement_normal = (static_displacement_mean * normal_vector).sum()
-            static_displacement_tangential = (
-                static_displacement_mean - static_displacement_normal * normal_vector
-            )
+                static_displacement_mean = interpolate_node_between(
+                    edge,
+                    static_displacement,
+                    static_displacement,
+                    dimension=problem_dimension,
+                )
+                static_displacement_normal = (static_displacement_mean * normal_vector).sum()
+                static_displacement_tangential = (
+                    static_displacement_mean - static_displacement_normal * normal_vector
+                )
 
-            subgrad = contact_cost(
-                nph.length(edge, nodes),
-                normal_condition(vm_normal, static_displacement_normal, dt),
-                normal_condition_bound(vm_normal, static_displacement_normal, dt),
-                tangential_condition(vm_tangential, static_displacement_tangential, dt),
-                tangential_condition_bound(vm_normal, static_displacement_normal, dt),
-            )
+                subgrad = contact_cost(
+                    nph.length(edge, nodes) / len(vms[0]),
+                    normal_condition(vm_normal, static_displacement_normal, dt),
+                    normal_condition_bound(vm_normal, static_displacement_normal, dt),
+                    tangential_condition(vm_tangential, static_displacement_tangential, dt),
+                    tangential_condition_bound(vm_normal, static_displacement_normal, dt),
+                )
 
-            for node in edge:
-                for i in range(variable_dimension):
-                    if node < offset:
-                        cost[i * offset + node] += normal_vector[i] / len(edge) * subgrad
+                for node in edge:
+                    for i in range(variable_dimension):
+                        if node < offset:
+                            cost[i * offset + node] += normal_vector[i] / len(edge) * subgrad
 
         return cost
 
@@ -362,57 +385,60 @@ def make_subgradient_dc(
         for ei in numba.prange(len(contact_boundary)):
             edge = contact_boundary[ei]
             normal_vector = contact_normals[ei]
-            # ASSUMING `u_vector` and `nodes` have the same order!
-            vm = interpolate_node_between(edge, var, var_old, dimension=variable_dimension)
-            vm1 = interpolate_node_between(edge, var1, var_old, dimension=variable_dimension)
-            if variable_dimension == 1:
-                raise NotImplementedError()  # TODO
-                # vm_normal = vm[0]
-                # vm_tangential = np.empty(0)
-            # else:
-            vm_normal = (vm * normal_vector).sum()
-            vm_tangential = vm - vm_normal * normal_vector
-            vm_normal1 = (vm1 * normal_vector).sum()
+            vms = get_nodes(edge, var, var_old, dimension=variable_dimension)
+            for dim_ in range(len(vms[0])):
+                vm = vms[:, dim_]
+                # ASSUMING `u_vector` and `nodes` have the same order!
+                vm = interpolate_node_between(edge, var, var_old, dimension=variable_dimension)
+                vm1 = interpolate_node_between(edge, var1, var_old, dimension=variable_dimension)
+                if variable_dimension == 1:
+                    raise NotImplementedError()  # TODO
+                    # vm_normal = vm[0]
+                    # vm_tangential = np.empty(0)
+                # else:
+                vm_normal = (vm * normal_vector).sum()
+                vm_tangential = vm - vm_normal * normal_vector
+                vm_normal1 = (vm1 * normal_vector).sum()
 
-            static_displacement_mean = interpolate_node_between(
-                edge,
-                static_displacement,
-                static_displacement,
-                dimension=problem_dimension,
-            )
-            static_displacement_normal = (static_displacement_mean * normal_vector).sum()
-            static_displacement_tangential = (
-                static_displacement_mean - static_displacement_normal * normal_vector
-            )
+                static_displacement_mean = interpolate_node_between(
+                    edge,
+                    static_displacement,
+                    static_displacement,
+                    dimension=problem_dimension,
+                )
+                static_displacement_normal = (static_displacement_mean * normal_vector).sum()
+                static_displacement_tangential = (
+                    static_displacement_mean - static_displacement_normal * normal_vector
+                )
 
-            subgrad = (
-                contact_cost(
-                    nph.length(edge, nodes),
-                    normal_condition(vm_normal1, static_displacement_normal, dt),
-                    normal_condition_bound(vm_normal1, static_displacement_normal, dt),
-                    tangential_condition(vm_tangential, static_displacement_tangential, dt),
-                    tangential_condition_bound(vm_normal1, static_displacement_normal, dt),
+                subgrad = (
+                    contact_cost(
+                        nph.length(edge, nodes) / len(vms[0]),
+                        normal_condition(vm_normal1, static_displacement_normal, dt),
+                        normal_condition_bound(vm_normal1, static_displacement_normal, dt),
+                        tangential_condition(vm_tangential, static_displacement_tangential, dt),
+                        tangential_condition_bound(vm_normal1, static_displacement_normal, dt),
+                    )
+                    + contact_cost(
+                        nph.length(edge, nodes) / len(vms[0]),
+                        normal_condition_sub2(vm_normal1, static_displacement_normal, dt),
+                        normal_condition_bound(vm_normal1, static_displacement_normal, dt),
+                        tangential_condition(vm_tangential, static_displacement_tangential, dt),
+                        tangential_condition_bound(vm_normal1, static_displacement_normal, dt),
+                    )
+                    - contact_cost(
+                        nph.length(edge, nodes) / len(vms[0]),
+                        normal_condition_sub2(vm_normal, static_displacement_normal, dt),
+                        normal_condition_bound(vm_normal, static_displacement_normal, dt),
+                        tangential_condition(vm_tangential, static_displacement_tangential, dt),
+                        tangential_condition_bound(vm_normal, static_displacement_normal, dt),
+                    )
                 )
-                + contact_cost(
-                    nph.length(edge, nodes),
-                    normal_condition_sub2(vm_normal1, static_displacement_normal, dt),
-                    normal_condition_bound(vm_normal1, static_displacement_normal, dt),
-                    tangential_condition(vm_tangential, static_displacement_tangential, dt),
-                    tangential_condition_bound(vm_normal1, static_displacement_normal, dt),
-                )
-                - contact_cost(
-                    nph.length(edge, nodes),
-                    normal_condition_sub2(vm_normal, static_displacement_normal, dt),
-                    normal_condition_bound(vm_normal, static_displacement_normal, dt),
-                    tangential_condition(vm_tangential, static_displacement_tangential, dt),
-                    tangential_condition_bound(vm_normal, static_displacement_normal, dt),
-                )
-            )
 
-            for node in edge:
-                for i in range(variable_dimension):
-                    if node < offset:
-                        cost[i * offset + node] += normal_vector[i] / len(edge) * subgrad
+                for node in edge:
+                    for i in range(variable_dimension):
+                        if node < offset:
+                            cost[i * offset + node] += normal_vector[i] / len(edge) * subgrad
 
         return cost
 

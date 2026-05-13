@@ -23,12 +23,12 @@ def make_slope_contact_law(slope: float) -> Type[ContactLaw]:
             b = B_COEF
             r = var_nu
             # EXAMPLE 11
-            # if r < b:
-            #     result = (r - b) ** 2
-            # else:
-            #     result = 1 - np.exp(-(r-b))
+            if r < b:
+                result = 0.5 * (r - b) ** 2
+            else:
+                result = np.log((r - b) + 1)
             # EXAMPLE 13
-            result = 0.5 * (r - b) ** 2
+            # result = 0.5 * (r - b) ** 2
             result *= slope
             return result
 
@@ -41,22 +41,25 @@ class StaticPoissonSetup(PoissonProblem):
 
     @staticmethod
     def internal_temperature(x: np.ndarray, t: Optional[float] = None) -> np.ndarray:
-        if 0.4 <= x[0] <= 0.6 and 0.4 <= x[1] <= 0.6:
-            return np.array([-10.0])
-        return np.array([2 * np.pi**2 * np.sin(np.pi * x[0]) * np.sin(np.pi * x[1])])
+        # return np.array([0.0])
+        # if 0.4 <= x[0] <= 0.6 and 0.4 <= x[1] <= 0.6:
+        return np.array([-4])
+        # return np.array([0.0])
+        # return np.array([2 * np.pi**2 * np.sin(np.pi * x[0]) * np.sin(np.pi * x[1])])
 
     @staticmethod
     def outer_temperature(x: np.ndarray, t: Optional[float] = None) -> np.ndarray:
-        if x[1] > 0.5:
-            return np.array([1.0])
-        return np.array([-1.0])
+        _y = x[1]
+        # if x[0] > 1:
+        return np.array([_y * (_y - 1) * 32])
+        # return np.array([-1.0])
 
     boundaries: ... = BoundariesDescription(
         dirichlet=(
-            lambda x: x[0] == 0.0,
+            lambda x: x[1] == 0.0 ,#or x[0] == 2.0,
             lambda x: np.full(x.shape[0], 5),
         ),
-        contact=lambda x: x[0] == 2.0,
+        contact=lambda x: x[1] == 1.0,
     )
 
 
@@ -67,10 +70,10 @@ def main(config: Config):
     To see result of simulation you need to call from python `main(Config().init())`.
     """
     alphas = [0.01, 0.1, 1, 10, 100, 1000, 10_000, 1_000_000, 1_000_000_000]
-    ihs = [4, 8, 16, 32, 64, 128, 256][:-2]
+    ihs = [4, 8, 16, 32, 48, 72]
     # OVERRIDE!!!
-    alphas = [1]
-    ihs = [16]
+    # alphas = [1_000_000]
+    # ihs = [15]
     alphas = alphas if not config.test else alphas[:1]
     ihs = ihs if not config.test else ihs[:1]
 
@@ -99,7 +102,7 @@ def simulate(config, alpha, ih):
 
     runner = PoissonSolver(setup, "schur")
 
-    state = runner.solve(verbose=True)
+    state = runner.solve(verbose=True, method="qsm")
 
     if config.outputs_path:
         with open(
@@ -125,10 +128,12 @@ def draw(config, alpha, ih):
     drawer.field_name = "temperature"
     drawer.deformed_mesh_color = None
     drawer.original_mesh_color = None
+
+    show = False
     drawer.draw(
         title=f"alpha={alpha}, ih={ih}",
-        show=True,
-        save=False,
+        show=show,
+        save=not show,
         foundation=False,
         field_max=max_,
         field_min=min_,
@@ -136,4 +141,4 @@ def draw(config, alpha, ih):
 
 
 if __name__ == "__main__":
-    main(Config(outputs_path="./output/BOT2023", force=False).init())
+    main(Config(outputs_path="./output/BOT2023", force=True).init())
